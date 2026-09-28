@@ -19,6 +19,21 @@ It looks at points in the target's space: the centre and four corners of each sq
 
 Each line from `sightLinesToToken` is `{ from, to, blocked, hit, cell, sample }`, where `hit` is `{ t, x, y }`, the point where it stopped. A blocked line may also carry `blockedBy` (the blocking creature's name), `capped` (stopped by a range cap) or `burrowed` (stopped by the ground).
 
+## Who can be targeted
+
+`getValidTargets(caster, targetType, range, options)` lists the tokens on the canvas an ability from `caster` could target.
+
+| Argument | What it means |
+|---|---|
+| `targetType` | Draw Steel's target type: `'creature'`, `'ally'`, `'enemy'`, `'object'`, `'creatureObject'`, `'enemyObject'`, `'selfOrAlly'`, `'selfOrCreature'` or `'selfAlly'`. Allies and enemies are told apart by token disposition, and objects are the defeated. |
+| `range` | In squares, measured the Draw Steel way between the two spaces. `0` means no limit. |
+| `excludeSelf` | Leave the caster out. |
+| `checkLOS` | Only tokens the caster has line of effect to. |
+| `respectHidden` | Leave out tokens hidden from the caster. |
+| `shift` | `{ x, y }` in pixels, to check from a position the caster is not in yet. |
+
+Burrowing is always checked, so a creature buried out of reach is never a valid target. Whether a token is hidden comes from whichever module runs stealth, through the `isHiddenFrom` service (see [Config and Services](Config-and-Services)). With no such module, nobody is hidden.
+
 ## Squares
 
 For checks against an empty place rather than a creature, such as where someone could hide. Grid coordinates are squares, not pixels; see [Grid and Walls](Grid-and-Walls).

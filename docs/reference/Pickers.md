@@ -69,6 +69,20 @@ Animated marks that sit on tokens during a pick.
 
 ## Ready made pickers
 
+### runColoredTokenPicker
+
+`runColoredTokenPicker({ tokens, colorMap, hint })` asks the user to click one of `tokens`. Each is lit in its own colour from `colorMap`, a Map of token id to a CSS hex colour such as `'#d9a63f'`, and the hovered one brightens and gets arrows in its colour. It resolves with the chosen token, or `null` on Escape (or a right click, when the `cancelOnRightClick` config is on).
+
+```js
+const picked = await runColoredTokenPicker({
+  tokens: eligible,
+  colorMap: new Map(eligible.map((t) => [t.id, '#d9a63f'])),
+  hint: 'Choose who takes the hit.',
+});
+```
+
+It opens the picker bar with the title "Pick a Token" and `hint` as its status line.
+
 ### chooseFreeSquare
 
 `chooseFreeSquare(token, landedOn = null, options = {})` asks the user where a creature ends up when it can't stay where it is: it rings the square around `token` (or around `landedOn`, the creature it fell onto) outward until it finds free squares, shows them in green with the blocked ones in red, draws an arrow to the hovered square, and resolves with the chosen grid square `{ x, y }`.
@@ -94,6 +108,23 @@ const square = await pickCanvasTarget({
 ```
 
 `hitTest(point)` gets the canvas point under the pointer and returns what's there, or `null`. `draw(graphics, hover)` redraws whenever that changes. A left click on something resolves with it; Escape resolves `null`, and so does a right click when the `cancelOnRightClick` config is on. `hint` shows as a notification when the picker opens. It uses no overlay bar: open one yourself if you want it.
+
+## Asking a question
+
+`stackedPrompt({ title, heading, options, width = 380, count = 1 })` is a small dialog of large buttons stacked one above the other, each with an image or icon, for a choice between a few named options.
+
+```js
+const answer = await stackedPrompt({
+  title: 'Brace',
+  heading: 'When the blow lands',
+  options: [
+    { action: 'stand', label: 'Stand your ground', img: 'icons/equipment/shield/heater-steel-worn.webp' },
+    { action: 'roll', label: 'Roll with it', icon: 'fa-solid fa-person-running' },
+  ],
+});
+```
+
+It resolves with the chosen option's `action`, or `null` when the dialog is closed. With `count` above 1 the user picks that many, clicking an option again to unpick it, and it resolves with an array of actions in the order they were picked.
 
 ## Related Pages
 

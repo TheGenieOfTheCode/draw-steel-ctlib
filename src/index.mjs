@@ -6,3 +6,5 @@ export * from './helpers.mjs';
 export * from './settings-submenu.mjs';
 export * from './dstd-panel.mjs';
 export { registerStatusGroup } from './status-palette.mjs';
+export { stackedPrompt } from './stacked-prompt.mjs';
+export { getValidTargets, runColoredTokenPicker } from './token-picker.mjs';

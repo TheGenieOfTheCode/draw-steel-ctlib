@@ -72,6 +72,7 @@ These are how Combat Tools and Death Tracker reach each other. You're welcome to
 | `applySquadLabels`, `applySquadLabelsAfterDeath` | Combat Tools |
 | `captainCandidates`, `hasLiveCaptain`, `reassignSquadCaptain` | Combat Tools |
 | `endGrab` | Combat Tools |
+| `isHiddenFrom` | Combat Tools. CTLib's `getValidTargets` asks it whether a token is hidden from the caster |
 | `resolveTokenVisibility` | Combat Tools |
 | `deathTrackerActive`, `minionOverrideActive` | Death Tracker |
 | `noteDamageCause`, `reportSquadDamage`, `resolveDeathsNow` | Death Tracker |

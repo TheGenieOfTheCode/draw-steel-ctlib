@@ -329,3 +329,39 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header 
 body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:first-child {
   margin-top: 0;
 }
+
+.dsct-stacked-prompt .dsct-stacked-selected {
+  box-shadow: inset 0 0 0 2px var(--color-warm-2, #c9ab6f);
+  filter: brightness(1.15);
+}
+
+.dsct-stacked-prompt .dsct-stacked-heading { margin: 0; font-weight: 600; }
+
+.dsct-stacked-prompt .form-footer { flex-direction: column; align-items: stretch; gap: 6px; }
+
+.dsct-stacked-prompt .dsct-stacked-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  height: auto;
+  min-height: 40px;
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.dsct-stacked-prompt .dsct-stacked-option > i {
+  flex: 0 0 auto;
+  width: 30px;
+  font-size: var(--font-size-20);
+  text-align: center;
+}
+
+.dsct-stacked-prompt .dsct-stacked-option img {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border: none;
+  border-radius: 4px;
+}

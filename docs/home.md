@@ -30,3 +30,4 @@ It does nothing on its own. A module that depends on it gets canvas pickers, lin
 
 - [Draw Steel: Combat Tools](https://github.com/TheGenieOfTheCode/draw-steel-combat-tools)
 - [Draw Steel: Death Tracker](https://github.com/TheGenieOfTheCode/draw-steel-death-tracker)
+- [Draw Steel: Triggers](https://github.com/TheGenieOfTheCode/draw-steel-triggers)
