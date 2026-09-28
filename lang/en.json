@@ -22,7 +22,6 @@
     },
     "statusGroup": {
       "system": "Draw Steel",
-      "dealer": "Dealer",
       "module": "Other Modules",
       "core": "Foundry"
     }

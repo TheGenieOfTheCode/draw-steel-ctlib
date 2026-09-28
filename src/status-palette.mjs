@@ -1,10 +1,7 @@
 const CORE = new Set(['dead', 'sleep', 'fly', 'blind', 'deaf']);
 
-const DEALER = new Set(['burning', 'jolted', 'dazzled', 'delayed', 'captivated', 'soul-imprisoned']);
-
 const _groups = new Map([
   ['system', { label: 'CTLIB.statusGroup.system', order: 10 }],
-  ['dealer', { label: 'CTLIB.statusGroup.dealer', order: 70 }],
   ['module', { label: 'CTLIB.statusGroup.module', order: 80 }],
   ['core',   { label: 'CTLIB.statusGroup.core',   order: 90 }],
 ]);
@@ -28,7 +25,6 @@ const _groupOf = (id, systemIds) => {
   if (CORE.has(id)) return 'core';
   const claimed = _matchers.find(({ match }) => match(id));
   if (claimed) return claimed.key;
-  if (DEALER.has(id) && game.modules.get('draw-steel-dealer')?.active) return 'dealer';
   return 'module';
 };
 
