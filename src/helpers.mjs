@@ -891,17 +891,17 @@ export const replayUndo = async (ops) => {
         case 'status':     await safeToggleStatusEffect(doc, entry.effectId, { active: entry.active }); break;
         case 'stamina':
           if (entry.wasDeadBefore) break;
-          if (config.get('debugMode')) console.log(`DSCT | HLP | replayUndo stamina: actorUuid=${entry.uuid} prevValue=${entry.prevValue} squadGroupUuid=${entry.squadGroupUuid} prevSquadHP=${entry.prevSquadHP} squadTokenIds=${JSON.stringify(entry.squadTokenIds)}`);
+          if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina: actorUuid=${entry.uuid} prevValue=${entry.prevValue} squadGroupUuid=${entry.squadGroupUuid} prevSquadHP=${entry.prevSquadHP} squadTokenIds=${JSON.stringify(entry.squadTokenIds)}`);
           await safeUpdate(doc, { 'system.stamina.temporary': entry.prevTemp, 'system.stamina.value': entry.prevValue });
           if (entry.squadGroupUuid && entry.prevSquadHP !== null) {
             const sg = await fromUuid(entry.squadGroupUuid);
-            if (config.get('debugMode')) console.log(`DSCT | HLP | replayUndo stamina squad: sg found=${!!sg} currentStaminaValue=${sg?.system?.staminaValue} prevSquadHP=${entry.prevSquadHP}`);
+            if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina squad: sg found=${!!sg} currentStaminaValue=${sg?.system?.staminaValue} prevSquadHP=${entry.prevSquadHP}`);
             if (sg) await safeUpdate(sg, { 'system.staminaValue': entry.prevSquadHP });
           }
           break;
       }
     } catch (e) {
-      console.error('DSCT | HLP | replayUndo error on entry:', entry, e);
+      console.error('CTLib | HLP | replayUndo error on entry:', entry, e);
     }
   }
 };
@@ -1043,7 +1043,7 @@ export const chooseFreeSquare = (targetToken, landedOnToken = null, { forceOnCan
 
   if (config.get('debugMode')) {
     const fallerTg = toGrid(targetToken.document);
-    console.log(`DSCT | chooseFreeSquare | ref=${refToken.name} grid=(${refTg.x},${refTg.y}) size=${refSize} | faller=${targetToken.name} grid=(${fallerTg.x},${fallerTg.y}) | candidates=[${candidates.map(c => `(${c.x},${c.y})`).join(',')}]`);
+    console.log(`CTLib | chooseFreeSquare | ref=${refToken.name} grid=(${refTg.x},${refTg.y}) size=${refSize} | faller=${targetToken.name} grid=(${fallerTg.x},${fallerTg.y}) | candidates=[${candidates.map(c => `(${c.x},${c.y})`).join(',')}]`);
   }
 
   if (candidates.length === 0) { resolve(null); return; }

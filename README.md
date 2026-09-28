@@ -17,6 +17,12 @@ A library module for the Draw Steel system that holds the code the Combat Tools 
 
 ---
 
+## Documentation
+
+Full documentation is available on the **[Wiki](https://github.com/TheGenieOfTheCode/draw-steel-ctlib/wiki)**.
+
+---
+
 ## Purpose
 
 CTLib is a developer tool. It holds the pieces more than one module needs, like the canvas pickers, line of sight and cover, wall materials, and letting players make changes that only the GM is allowed to write, so each module can use them without carrying its own copy. It does nothing by itself, and you won't see it in play except through the modules that use it.
