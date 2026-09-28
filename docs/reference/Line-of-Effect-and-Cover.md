@@ -56,7 +56,9 @@ A creature is burrowing when it has the `burrow` status. How deep it is comes fr
 
 ## What creatures and walls carry
 
-Creatures and walls change these checks through flags. Combat Tools writes them from its sheet options; these functions read them. They live under the `draw-steel-combat-tools` flag scope. Reading them is always safe, even when Combat Tools is off.
+Creatures and walls change these checks through flags under CTLib's own scope, `draw-steel-ctlib` (exported as `CTLIB_SCOPE`). Combat Tools writes them from its sheet and wall options, and an Active Effect can set the actor ones with a change key such as `flags.draw-steel-ctlib.loe.rangeCap`.
+
+Older content kept them under Combat Tools' scope, `draw-steel-combat-tools`. CTLib still reads those when its own are missing, so effects in compendiums built before the change keep working. `ctlibFlag(doc, key)` reads a flag the same way, CTLib's scope first.
 
 | Flag on the Actor | Read by | Meaning |
 |---|---|---|

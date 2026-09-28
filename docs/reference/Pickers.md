@@ -56,16 +56,16 @@ It returns a handle:
 
 ## Marks on tokens
 
-Animated marks that sit on tokens during a pick, drawn in each token's disposition colour.
+Animated marks that sit on tokens during a pick.
 
 | Function | What it does |
 |---|---|
-| `setPickerArrow(token, color, alphaMult = 1)` | Four pulsing arrows pointing in at the token: "this one could be chosen". |
-| `setPickerTarget(token, color, alphaMult = 1)` | Four corner brackets, like Foundry's own targeting marks: "this one is chosen". |
+| `setPickerArrow(token, color = null, alphaMult = 1)` | Four pulsing arrows pointing in at the token: "this one could be chosen". |
+| `setPickerTarget(token, color = null, alphaMult = 1)` | Four corner brackets, like Foundry's own targeting marks: "this one is chosen". |
 | `removePickerArrow(token)`, `removePickerTarget(token)` | Remove one token's mark. |
 | `clearPickerArrows()` | Remove every mark. Call it when your picker ends. |
 
-`alphaMult` fades a mark, for candidates that are allowed but not suggested. The `color` argument is accepted for future use; the marks currently always draw in disposition colour.
+`color` is a number such as `0x66aaff`. Leave it out and the mark takes the token's disposition colour, like Foundry's own target marks. `alphaMult` fades a mark, for candidates that are allowed but not suggested. Calling either again for the same token updates its colour and fade.
 
 ## Ready made pickers
 

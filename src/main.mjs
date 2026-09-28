@@ -1,7 +1,8 @@
 import * as ctlib from './index.mjs';
-import { reviveDropKeys } from './helpers.mjs';
+import { reviveDropKeys, initPalette } from './helpers.mjs';
 import { setSocket } from './socket.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
+import { registerMigration } from './migrate.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -17,4 +18,7 @@ Hooks.once('socketlib.ready', () => {
 Hooks.once('init', () => {
   game.modules.get(MODULE_ID).api = ctlib;
   registerStatusPalette();
+  registerMigration();
+  initPalette();
+  new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
 });

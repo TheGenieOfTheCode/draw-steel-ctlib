@@ -13,12 +13,7 @@ CTLib's stylesheet defines colour tokens that the family's windows and panels us
 | `--dsct-text`, `--dsct-text-dim`, `--dsct-text-label`, `--dsct-text-active` | Text, faint text, labels, and the active choice. |
 | `--dsct-accent`, `--dsct-accent-red`, `--dsct-accent-green` | Highlights, and warning and success colours. |
 
-The stylesheet holds the light values. `initPalette()` sets the dark values when Foundry's interface is in its dark theme and the light values otherwise; call it once at `init` and again whenever the body's classes change:
-
-```js
-initPalette();
-new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
-```
+CTLib switches them between light and dark values itself, following Foundry's interface theme, so they're right in both without anything on your side. `initPalette()` re-applies them, should you ever need to.
 
 ## Preview tokens
 

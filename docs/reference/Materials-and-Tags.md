@@ -4,7 +4,7 @@ Draw Steel gives walls and objects a material that decides what it costs to brea
 
 ## Tags
 
-A tag is a short text label on a wall, tile or token. When the [Tagger](https://foundryvtt.com/packages/tagger) module is active these functions use it; otherwise they keep the tags themselves in the `tags` flag under the `draw-steel-combat-tools` scope, so scenes built with or without Tagger read the same way.
+A tag is a short text label on a wall, tile or token. When the [Tagger](https://foundryvtt.com/packages/tagger) module is active these functions use it; otherwise they keep the tags themselves in the `tags` flag under CTLib's scope, `draw-steel-ctlib`, so scenes built with or without Tagger read the same way. Tags kept under Combat Tools' scope by older versions are still read.
 
 | Function | What it does |
 |---|---|

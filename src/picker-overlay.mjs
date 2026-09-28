@@ -278,16 +278,15 @@ function _arrowTick() {
   _arrowG.clear();
   for (const [, e] of _targets) {
     if (!e.token?.document || e.token.destroyed) continue;
-    _drawTargetSet(_arrowG, e.token, _dispositionColor(e.token), e.alphaMult ?? 1);
+    _drawTargetSet(_arrowG, e.token, e.color ?? _dispositionColor(e.token), e.alphaMult ?? 1);
   }
   for (const [, e] of _arrows) {
     if (!e.token?.document || e.token.destroyed) continue;
-    _drawArrowSet(_arrowG, e.token, _dispositionColor(e.token), Math.max(0, a) * (e.alphaMult ?? 1), m);
+    _drawArrowSet(_arrowG, e.token, e.color ?? _dispositionColor(e.token), Math.max(0, a) * (e.alphaMult ?? 1), m);
   }
 }
 
-export function setPickerArrow(token, color, alphaMult = 1) {
-  color ??= token._getBorderColor?.() ?? 0xffffff;
+export function setPickerArrow(token, color = null, alphaMult = 1) {
   _ensureArrowLayer();
   const existing = _arrows.get(token.id);
   if (existing) { existing.color = color; existing.alphaMult = alphaMult; existing.token = token; return; }
@@ -295,8 +294,7 @@ export function setPickerArrow(token, color, alphaMult = 1) {
   _ensureArrowTicker();
 }
 
-export function setPickerTarget(token, color, alphaMult = 1) {
-  color ??= token._getBorderColor?.() ?? 0xffffff;
+export function setPickerTarget(token, color = null, alphaMult = 1) {
   _ensureArrowLayer();
   const existing = _targets.get(token.id);
   if (existing) { existing.color = color; existing.alphaMult = alphaMult; existing.token = token; return; }

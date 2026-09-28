@@ -79,9 +79,13 @@ export const initPalette = () => {
 
 const taggerActive = () => game.modules.get('tagger')?.active;
 
-const DSCT_SCOPE = 'draw-steel-combat-tools';
+export const CTLIB_SCOPE = 'draw-steel-ctlib';
+export const LEGACY_SCOPE = 'draw-steel-combat-tools';
+
+export const ctlibFlag = (doc, key) => doc?.flags?.[CTLIB_SCOPE]?.[key] ?? doc?.flags?.[LEGACY_SCOPE]?.[key];
+
 const _doc  = (obj) => obj?.document ?? obj;
-const _tags = (obj) => _doc(obj)?.flags?.[DSCT_SCOPE]?.tags ?? [];
+const _tags = (obj) => ctlibFlag(_doc(obj), 'tags') ?? [];
 
 export const hasTags = (obj, tag) => {
   if (taggerActive()) return Tagger.hasTags(obj, tag);
@@ -104,14 +108,14 @@ export const addTags = async (obj, tags) => {
   if (taggerActive()) return Tagger.addTags(obj, tags);
   const doc  = _doc(obj);
   const curr = _tags(obj);
-  await safeUpdate(doc, { [`flags.${DSCT_SCOPE}.tags`]: [...new Set([...curr, ...tags])] });
+  await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: [...new Set([...curr, ...tags])] });
 };
 
 export const removeTags = async (obj, tags) => {
   if (taggerActive()) return Tagger.removeTags(obj, tags);
   const doc  = _doc(obj);
   const curr = _tags(obj);
-  await safeUpdate(doc, { [`flags.${DSCT_SCOPE}.tags`]: curr.filter(t => !tags.includes(t)) });
+  await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: curr.filter(t => !tags.includes(t)) });
 };
 
 export const GRID = () => canvas.grid.size;
@@ -305,23 +309,27 @@ export function burrowBlocksLineOfEffect(fromToken, toToken) {
 
 export const LOE_KEY = 'loe';
 
+const _actorOf = (token) => token?.actor ?? (token?.documentName === 'Actor' ? token : null);
+const _loe = (token, name) => {
+  const actor = _actorOf(token);
+  return actor?.flags?.[CTLIB_SCOPE]?.[LOE_KEY]?.[name] ?? actor?.flags?.[LEGACY_SCOPE]?.[LOE_KEY]?.[name];
+};
+
 export function loeRangeCap(token) {
-  const actor = token?.actor ?? (token?.documentName === 'Actor' ? token : null);
-  const raw = actor?.flags?.['draw-steel-combat-tools']?.[LOE_KEY]?.rangeCap;
+  const raw = _loe(token, 'rangeCap');
   return Math.max(0, Math.floor(Number(raw) || 0));
 }
 
 export function blocksLoeForEnemies(token) {
-  const actor = token?.actor ?? (token?.documentName === 'Actor' ? token : null);
-  const raw = actor?.flags?.['draw-steel-combat-tools']?.[LOE_KEY]?.blocksForEnemies;
+  const raw = _loe(token, 'blocksForEnemies');
   return raw === true || raw === 1 || /^(true|1|yes|on)$/i.test(String(raw ?? '').trim());
 }
 
 export const COVER_KEY = 'cover';
 
 const _coverModeOf = (token) => {
-  const actor = token?.actor ?? (token?.documentName === 'Actor' ? token : null);
-  const mode = actor?.flags?.['draw-steel-combat-tools']?.[COVER_KEY];
+  const actor = _actorOf(token);
+  const mode = ctlibFlag(actor, COVER_KEY);
   if (mode === 'none' || mode === 'low' || mode === 'full') return mode;
   
   
@@ -331,14 +339,13 @@ const _coverModeOf = (token) => {
 export const tokenCoverMode = _coverModeOf;
 
 export const grantsCoverBehind = (token) => {
-  const actor = token?.actor ?? (token?.documentName === 'Actor' ? token : null);
-  const raw = actor?.flags?.['draw-steel-combat-tools']?.[LOE_KEY]?.grantsCoverBehind;
+  const raw = _loe(token, 'grantsCoverBehind');
   return raw === true || raw === 1 || /^(true|1|yes|on)$/i.test(String(raw ?? '').trim());
 };
 
 export function wallGrantsCover(wall) {
   const doc = wall?.document ?? wall;
-  return doc?.flags?.['draw-steel-combat-tools']?.lowCover === true;
+  return ctlibFlag(doc, 'lowCover') === true;
 }
 
 const _wallEnds = (wall) => {
@@ -653,7 +660,7 @@ const COVER_IMMUNITY_FLAG = 'coverImmunity';
 const _on = (v) => v === true || v === 1 || /^(true|1|yes|on)$/i.test(String(v ?? '').trim());
 
 export const grantsCoverImmunity = (token) =>
-  _on(token?.actor?.flags?.['draw-steel-combat-tools']?.[LOE_KEY]?.coverGrantsImmunity);
+  _on(_loe(token, 'coverGrantsImmunity'));
 
 export function highestCharacteristic(actor) {
   let best = 0;
@@ -678,7 +685,7 @@ async function _setCoverImmunityDisabled(effect, disabled) {
 }
 
 export async function armCoverImmunity(actor, sourceToken) {
-  const existing = actor?.effects?.find(e => e.flags?.[DSCT_SCOPE]?.[COVER_IMMUNITY_FLAG]) ?? null;
+  const existing = actor?.effects?.find(e => ctlibFlag(e, COVER_IMMUNITY_FLAG)) ?? null;
   const targetToken = actor?.token?.object ?? actor?.getActiveTokens?.()[0] ?? null;
   const grantor = (sourceToken && targetToken) ? coverImmunityGrantor(sourceToken, targetToken) : null;
   if (!grantor) return _setCoverImmunityDisabled(existing, true);
@@ -696,12 +703,12 @@ export async function armCoverImmunity(actor, sourceToken) {
     changes,
     disabled: false,
     transfer: false,
-    flags: { 'draw-steel-combat-tools': { [COVER_IMMUNITY_FLAG]: true } },
+    flags: { [CTLIB_SCOPE]: { [COVER_IMMUNITY_FLAG]: true } },
   }]);
 }
 
 export async function disarmCoverImmunity(actor) {
-  const e = actor?.effects?.find(x => x.flags?.[DSCT_SCOPE]?.[COVER_IMMUNITY_FLAG]) ?? null;
+  const e = actor?.effects?.find(x => ctlibFlag(x, COVER_IMMUNITY_FLAG)) ?? null;
   await _setCoverImmunityDisabled(e, true);
 }
 
