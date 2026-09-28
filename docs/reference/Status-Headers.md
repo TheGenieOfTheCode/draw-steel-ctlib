@@ -33,7 +33,7 @@ A status listed in `statuses` goes to that group even when another group's `matc
 |---|---|---|
 | 10 | Draw Steel | The system's conditions and Stamina states. |
 | 80 | Other Modules | Anything no group claims. |
-| 90 | Foundry | Dead, Asleep, Flying, Blind and Deaf. |
+| 90 | Foundry | Dead, Asleep, Flying, Burrowing, Blind, Deaf and Invisible. |
 
 The family's own: Combat Tools at 20, Death Tracker at 30. A header with no statuses under it isn't shown.
 

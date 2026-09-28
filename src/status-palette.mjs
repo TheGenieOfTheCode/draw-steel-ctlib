@@ -1,4 +1,4 @@
-const CORE = new Set(['dead', 'sleep', 'fly', 'blind', 'deaf']);
+const CORE = new Set(['dead', 'sleep', 'fly', 'burrow', 'blind', 'deaf', 'invisible']);
 
 const _groups = new Map([
   ['system', { label: 'CTLIB.statusGroup.system', order: 10 }],
