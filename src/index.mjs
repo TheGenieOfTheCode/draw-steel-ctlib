@@ -5,3 +5,4 @@ export * from './picker-overlay.mjs';
 export * from './helpers.mjs';
 export * from './settings-submenu.mjs';
 export * from './dstd-panel.mjs';
+export { registerStatusGroup } from './status-palette.mjs';

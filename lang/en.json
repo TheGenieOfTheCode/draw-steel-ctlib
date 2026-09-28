@@ -19,6 +19,12 @@
       "save": "Save Changes",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world."
+    },
+    "statusGroup": {
+      "system": "Draw Steel",
+      "dealer": "Dealer",
+      "module": "Other Modules",
+      "core": "Foundry"
     }
   }
 }
