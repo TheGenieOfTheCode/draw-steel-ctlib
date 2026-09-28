@@ -24,6 +24,7 @@ CTLib is a developer tool. It holds the pieces more than one module needs, like 
 It's required by:
 
 - [Draw Steel: Combat Tools](https://github.com/TheGenieOfTheCode/draw-steel-combat-tools)
+- [Draw Steel: Death Tracker](https://github.com/TheGenieOfTheCode/draw-steel-death-tracker)
 
 ---
 
