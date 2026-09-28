@@ -26,6 +26,7 @@ config.define('wallRestrictions', WALL_RESTRICTION_DEFAULTS);
 config.define('customMaterials', []);
 config.define('debugMode', false);
 config.define('cancelOnRightClick', false);
+config.define('autoConfirmSelection', false);
 
 export const rangeEnforced = () =>
   config.get('enforceAbilityRange') && !(game.user.isGM && config.get('gmBypassRangeEnforcement'));
