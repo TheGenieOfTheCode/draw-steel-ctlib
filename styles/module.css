@@ -315,6 +315,26 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(.dsct-pi
   border: 1px solid #2f5a94;
 }
 
+body #token-hud .status-effects.palette {
+  max-height: none;
+}
+
+body #token-hud .status-effects.palette section.effect-pane {
+  grid-template-columns: repeat(3, 145px);
+  align-items: center;
+}
+
+body #token-hud .status-effects.palette section.effect-pane span.title.ellipsis {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  line-height: 1.15;
+
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
 body #token-hud .status-effects.palette section.effect-pane .dsct-status-header {
   grid-column: 1 / -1;
   margin: 6px 0 2px;
