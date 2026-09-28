@@ -3,7 +3,6 @@
   "title": "Draw Steel: CTLib",
   "description": "<p>Shared code for the Draw Steel: Combat Tools family of modules. It does nothing on its own, and the modules that need it will ask for it.</p>",
   "version": "0.1.0",
-  "library": true,
   "socket": true,
   "compatibility": { "minimum": "14", "verified": "14" },
   "authors": [{ "name": "Ady", "discord": "AdyGenie" }],

@@ -9,6 +9,16 @@
     },
     "coverImmunity": {
       "name": "Covered by {name}"
+    },
+    "settings": {
+      "debugHeader": "Debug Settings",
+      "active": "Active",
+      "notDetected": "Not Detected",
+      "browseFiles": "Browse Files",
+      "iconPreview": "Current icon preview",
+      "save": "Save Changes",
+      "reload": "Reload",
+      "reloadTooltip": "This one only takes full effect once you reload the world."
     }
   }
 }
