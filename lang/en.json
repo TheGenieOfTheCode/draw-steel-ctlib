@@ -1,0 +1,14 @@
+{
+  "CTLIB": {
+    "picker": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "toggleUi": "Toggle the rest of the UI",
+      "titleSquare": "Pick a Square",
+      "chooseLanding": "Choose where {name} lands. Escape to skip."
+    },
+    "coverImmunity": {
+      "name": "Covered by {name}"
+    }
+  }
+}
