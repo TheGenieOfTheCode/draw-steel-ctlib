@@ -969,7 +969,7 @@ export const undoDamage = async (actor, { prevTemp, prevValue, prevSquadHP, squa
 export const snapStamina = (actor) => {
   if (!actor) return { prevValue: 0, prevTemp: 0, squadGroup: null, prevSquadHP: null, squadCombatantIds: [], squadTokenIds: [] };
   const sg = getSquadGroup(actor);
-  const members = sg ? Array.from(sg.members || []).filter(m => m) : [];
+  const members = sg ? Array.from(sg.members || []).filter(m => m && !m.isDefeated) : [];
   return {
     prevValue:   actor.system.stamina.value,
     prevTemp:    actor.system.stamina.temporary,
