@@ -385,3 +385,73 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
   border: none;
   border-radius: 4px;
 }
+
+.ctlib-faces {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.ctlib-face-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: margin-left 90ms ease-out;
+}
+
+.ctlib-faces .ctlib-face-wrap:not(:first-child) {
+  margin-left: -0.55em;
+}
+
+.ctlib-faces:hover .ctlib-face-wrap:not(:first-child) {
+  margin-left: 0.15em;
+}
+
+.ctlib-face {
+  width: 1.8em;
+  height: 1.8em;
+  border: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.25);
+  outline: 1px solid transparent;
+  transition: transform 90ms ease-out, outline-color 90ms ease-out;
+}
+
+.ctlib-face-minion {
+  width: 1.4em;
+  height: 1.4em;
+}
+
+.ctlib-face-wrap:hover .ctlib-face {
+  transform: scale(1.2);
+  outline-color: currentColor;
+}
+
+.ctlib-face-wrap:hover {
+  z-index: 3;
+}
+
+.ctlib-face-captain {
+  z-index: 2;
+}
+
+.ctlib-face-faded {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}
+
+.ctlib-face-captain-mark {
+  position: absolute;
+  top: -0.35em;
+  left: -0.3em;
+  font-size: 0.62em;
+  line-height: 1;
+  pointer-events: none;
+  background: linear-gradient(170deg, #fff3cd 0%, #f0c657 45%, #b8862b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 2px rgba(60, 40, 0, 0.9));
+}

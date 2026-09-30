@@ -1,5 +1,8 @@
 {
   "CTLIB": {
+    "faces": {
+      "notOnScene": "{name} is not on this scene."
+    },
     "picker": {
       "confirm": "Confirm",
       "cancel": "Cancel",

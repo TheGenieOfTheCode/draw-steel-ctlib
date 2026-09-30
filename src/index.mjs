@@ -8,3 +8,4 @@ export * from './dstd-panel.mjs';
 export { registerStatusGroup } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';
 export { getValidTargets, runColoredTokenPicker } from './token-picker.mjs';
+export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';
