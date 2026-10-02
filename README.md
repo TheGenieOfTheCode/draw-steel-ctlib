@@ -25,10 +25,11 @@ Full documentation is available on the **[Wiki](https://github.com/TheGenieOfThe
 
 ## Purpose
 
-CTLib is a developer tool. It holds the pieces more than one module needs, like the canvas pickers, line of sight and cover, wall materials, and letting players make changes that only the GM is allowed to write, so each module can use them without carrying its own copy. It does nothing by itself, and you won't see it in play except through the modules that use it.
+CTLib is a developer tool. It holds the pieces more than one module needs, like the canvas pickers, line of sight and cover, wall materials, token portraits, damage type icons, resource tokens, and letting players make changes that only the GM is allowed to write, so each module can use them without carrying its own copy. It does nothing by itself, and you won't see it in play except through the modules that use it.
 
 It's required by:
 
+- [Draw Steel: Battle Log](https://github.com/TheGenieOfTheCode/draw-steel-battle-log)
 - [Draw Steel: Combat Tools](https://github.com/TheGenieOfTheCode/draw-steel-combat-tools)
 - [Draw Steel: Death Tracker](https://github.com/TheGenieOfTheCode/draw-steel-death-tracker)
 - [Draw Steel: Triggers](https://github.com/TheGenieOfTheCode/draw-steel-triggers)
