@@ -477,3 +477,11 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 .theme-dark .ctlib-dmg-sonic { color: #00cec9; }
 .ctlib-dmg-healing, .ctlib-dmg-temporary { color: #1e7a44; }
 .theme-dark .ctlib-dmg-healing, .theme-dark .ctlib-dmg-temporary { color: #2ecc71; }
+
+.ctlib-res-token {
+  width: 1.15em;
+  height: 1.15em;
+  border: 0;
+  vertical-align: -0.2em;
+  object-fit: contain;
+}
