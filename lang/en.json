@@ -1,5 +1,10 @@
 {
   "CTLIB": {
+    "damage": {
+      "untyped": "Untyped",
+      "healing": "Healing",
+      "temporary": "Temporary Stamina"
+    },
     "faces": {
       "notOnScene": "{name} is not on this scene."
     },

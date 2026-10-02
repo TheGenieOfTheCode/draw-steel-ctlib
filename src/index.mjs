@@ -9,3 +9,4 @@ export { registerStatusGroup } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';
 export { getValidTargets, runColoredTokenPicker } from './token-picker.mjs';
 export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';
+export { DAMAGE_TYPES, damageTypeLabel, damageTypeIconHTML } from './damage-types.mjs';

@@ -455,3 +455,25 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
   color: transparent;
   filter: drop-shadow(0 0 2px rgba(60, 40, 0, 0.9));
 }
+
+.ctlib-dmg-acid { color: #3d7a22; }
+.ctlib-dmg-cold { color: #1f72a8; }
+.ctlib-dmg-corruption { color: #7d3c98; }
+.ctlib-dmg-fire { color: #c0392b; }
+.ctlib-dmg-holy { color: #8a6d00; }
+.ctlib-dmg-lightning { color: #8c7300; }
+.ctlib-dmg-poison { color: #1e7a44; }
+.ctlib-dmg-psychic { color: #9b27b8; }
+.ctlib-dmg-sonic { color: #00807b; }
+
+.theme-dark .ctlib-dmg-acid { color: #6fbf4a; }
+.theme-dark .ctlib-dmg-cold { color: #65c7f7; }
+.theme-dark .ctlib-dmg-corruption { color: #9b59b6; }
+.theme-dark .ctlib-dmg-fire { color: #e74c3c; }
+.theme-dark .ctlib-dmg-holy { color: #f1c40f; }
+.theme-dark .ctlib-dmg-lightning { color: #f7dc6f; }
+.theme-dark .ctlib-dmg-poison { color: #2ecc71; }
+.theme-dark .ctlib-dmg-psychic { color: #e056fd; }
+.theme-dark .ctlib-dmg-sonic { color: #00cec9; }
+.ctlib-dmg-healing, .ctlib-dmg-temporary { color: #1e7a44; }
+.theme-dark .ctlib-dmg-healing, .theme-dark .ctlib-dmg-temporary { color: #2ecc71; }
