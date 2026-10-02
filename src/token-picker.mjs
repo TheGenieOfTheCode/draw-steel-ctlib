@@ -9,7 +9,7 @@ const _hasAnySightTo  = (casterToken, targetToken, shift = null) => hasSightToTo
 
 const isHiddenFrom = (token, observer) => services.get('isHiddenFrom')?.(token, observer) ?? false;
 
-function _hitToken(pos, candidates) {
+export function hitToken(pos, candidates) {
   const GS = canvas.grid.size;
   return candidates.find(t => {
     const tw = t.document.width  * GS;
@@ -74,8 +74,12 @@ const _brightenHex = (hex) => {
   return (r << 16) | (g << 8) | b;
 };
 
-export async function runColoredTokenPicker({ tokens, colorMap, hint }) {
+export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint, title, arrowColor, autoPick = false, control = false }) {
   if (!tokens.length) return null;
+  if (autoPick && tokens.length === 1) {
+    if (control) tokens[0].control();
+    return tokens[0];
+  }
 
   const hlName = 'dsct-colored-picker-hl';
   if (canvas.interface.grid.highlightLayers[hlName]) canvas.interface.grid.destroyHighlightLayer(hlName);
@@ -106,7 +110,7 @@ export async function runColoredTokenPicker({ tokens, colorMap, hint }) {
 
   return new Promise(resolve => {
     const overlay = beginPickerOverlay({
-      title: game.i18n.localize('CTLIB.picker.titleSource'),
+      title: title ?? game.i18n.localize('CTLIB.picker.titleSource'),
       status: hint ?? '',
       tokens,
       showConfirm: false,
@@ -127,12 +131,12 @@ export async function runColoredTokenPicker({ tokens, colorMap, hint }) {
 
     const onMove = (event) => {
       const pos    = event.data.getLocalPosition(canvas.app.stage);
-      const hit    = _hitToken(pos, tokens);
+      const hit    = hitToken(pos, tokens);
       const newId  = hit?.id ?? null;
       if (newId === hoverId) return;
       if (hoverId) removePickerArrow(canvas.tokens.get(hoverId));
       hoverId = newId;
-      if (hit) setPickerArrow(hit, _cssHexToNum(colorMap.get(hit.id) ?? '#ffffff'));
+      if (hit) setPickerArrow(hit, arrowColor ? arrowColor(hit) : _cssHexToNum(colorMap.get(hit.id) ?? '#ffffff'));
       drawHighlights(hoverId);
     };
 
@@ -142,9 +146,10 @@ export async function runColoredTokenPicker({ tokens, colorMap, hint }) {
         return;
       }
       if (event.data.originalEvent.button !== 0) return;
-      const hit = _hitToken(event.data.getLocalPosition(canvas.app.stage), tokens);
+      const hit = hitToken(event.data.getLocalPosition(canvas.app.stage), tokens);
       if (!hit) return;
       cleanup();
+      if (control) hit.control();
       resolve(hit);
     };
 

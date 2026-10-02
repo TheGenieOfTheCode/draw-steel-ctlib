@@ -43,7 +43,7 @@ export function faceChainHTML(faces, { className = '' } = {}) {
     const wrap = ['ctlib-face-wrap', f.captain ? 'ctlib-face-captain' : '', f.faded ? 'ctlib-face-faded' : ''].filter(Boolean).join(' ');
     const img = ['ctlib-face', f.minion && !f.captain ? 'ctlib-face-minion' : ''].filter(Boolean).join(' ');
     const mark = f.captain ? '<i class="fa-solid fa-helmet-battle ctlib-face-captain-mark" inert></i>' : '';
-    return `<span class="${wrap}" ${FACE}="${esc(f.tokenUuid)}" data-tooltip="${esc(f.tooltip ?? f.name)}"><img class="${img}" src="${esc(f.src)}" alt="">${mark}</span>`;
+    return `<span class="${wrap}" ${FACE}="${esc(f.tokenUuid ?? '')}" data-ctlib-face-name="${esc(f.name)}" data-tooltip="${esc(f.tooltip ?? f.name)}"><img class="${img}" src="${esc(f.src)}" alt="">${mark}</span>`;
   });
   return `<span class="ctlib-faces ${esc(className)}">${items.join('')}</span>`;
 }
@@ -62,15 +62,18 @@ export function activateFaces(root) {
     event.stopPropagation();
     const token = tokenOf(el);
     if (!token) {
-      const name = fromUuidSync(el.getAttribute(FACE))?.name ?? '';
+      const name = fromUuidSync(el.getAttribute(FACE))?.name ?? el.dataset.ctlibFaceName ?? '';
       ui.notifications.info(game.i18n.format('CTLIB.faces.notOnScene', { name }));
       return;
     }
-    canvas.ping(token.center);
+    const pull = event.shiftKey;
+    canvas.ping(token.center, pull ? { style: CONFIG.Canvas.pings.types.PULL, pull } : {});
   });
   root.addEventListener('pointerover', (event) => {
     const el = event.target.closest?.(`[${FACE}]`);
-    if (el && !el.contains(event.relatedTarget)) tokenOf(el)?._onHoverIn?.({});
+    if (!el || el.contains(event.relatedTarget)) return;
+    const token = tokenOf(el);
+    if (token?.visible && token._canHover?.(game.user, event) !== false) token._onHoverIn?.(event, { hoverOutOthers: true });
   });
   root.addEventListener('pointerout', (event) => {
     const el = event.target.closest?.(`[${FACE}]`);

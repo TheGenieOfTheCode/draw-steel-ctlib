@@ -11,11 +11,16 @@ const _detached = new Map();
 
 const dstdActive = () => !!game.modules.get(DSTD)?.active;
 
-export const registerPanelDecorator = ({ id, priority = 100, decorate, onRender = true, onMutation = true, ignore = [] }) => {
+const DEFAULT_WATCH = [DSTD_PANEL, DSTD_ROW_ANY];
+
+export const registerPanelDecorator = ({
+  id, priority = 100, decorate, onRender = true, onMutation = true, ignore = [],
+  watch = DEFAULT_WATCH, retry = [], immediate = false,
+}) => {
   if (typeof decorate !== 'function') throw new TypeError(`CTLib | Target Damage panel | "${id}" needs a decorate function`);
   const at = _decorators.findIndex((d) => d.id === id);
   if (at >= 0) _decorators.splice(at, 1);
-  _decorators.push({ id, priority, decorate, onRender, onMutation });
+  _decorators.push({ id, priority, decorate, onRender, onMutation, watch, retry, immediate });
   _decorators.sort((a, b) => a.priority - b.priority);
   for (const selector of ignore) _ignore.add(selector);
   _start();
@@ -36,32 +41,49 @@ export const applicationSignature = (message) => {
   return `${applied}/${undone}`;
 };
 
-const _run = async (message, root, trigger) => {
+const _runOne = async (d, message, root, trigger) => {
   const panel = root?.querySelector(DSTD_PANEL) ?? null;
+  try { await d.decorate({ message, root, panel, trigger }); }
+  catch (err) { console.error(`CTLib | Target Damage panel | "${d.id}" failed:`, err); }
+};
+
+const _run = async (message, root, trigger, only = null) => {
   for (const d of _decorators) {
     if (trigger === 'render' ? !d.onRender : !d.onMutation) continue;
-    try { await d.decorate({ message, root, panel, trigger }); }
-    catch (err) { console.error(`CTLib | Target Damage panel | "${d.id}" failed:`, err); }
+    if (only && !only.has(d)) continue;
+    await _runOne(d, message, root, trigger);
   }
 };
+
+const _watches = (d, node) => d.watch === 'any'
+  || d.watch.some((s) => node.matches?.(s) || node.querySelector?.(s));
 
 const _ignored = (node) => [..._ignore].some((s) => node.matches?.(s) || node.closest?.(s));
 
 const _onMutations = (mutations) => {
   if (!dstdActive()) return;
-  const touched = new Set();
+  const touched = new Map();
+  const touch = (li, d) => {
+    if (!touched.has(li)) touched.set(li, new Set());
+    touched.get(li).add(d);
+  };
+  const watchers = _decorators.filter((d) => d.onMutation);
+  const anyWatchers = watchers.filter((d) => d.watch === 'any');
   for (const mutation of mutations) {
+    if (anyWatchers.length && mutation.target instanceof HTMLElement && !_ignored(mutation.target)) {
+      const li = mutation.target.closest('li.chat-message[data-message-id]');
+      if (li) for (const d of anyWatchers) touch(li, d);
+    }
     for (const node of mutation.addedNodes) {
       if (node.nodeType !== Node.ELEMENT_NODE || _ignored(node)) continue;
-      const hit = node.matches?.(DSTD_PANEL) || node.querySelector?.(DSTD_PANEL)
-        || node.matches?.(DSTD_ROW_ANY) || node.querySelector?.(DSTD_ROW_ANY);
-      const li = hit ? node.closest?.('li.chat-message[data-message-id]') : null;
-      if (li) touched.add(li);
+      const li = node.closest?.('li.chat-message[data-message-id]');
+      if (!li) continue;
+      for (const d of watchers) if (_watches(d, node)) touch(li, d);
     }
   }
-  for (const li of touched) {
+  for (const [li, only] of touched) {
     const message = game.messages.get(li.dataset.messageId);
-    if (message) _run(message, li, 'mutation');
+    if (message) _run(message, li, 'mutation', only);
   }
 };
 
@@ -81,12 +103,15 @@ const _start = () => {
     const root = html instanceof HTMLElement ? html : html?.[0];
     if (!root) return;
     const msgId = message.id;
-    setTimeout(() => {
-      const live = root.isConnected
-        ? root
-        : (root.ownerDocument.querySelector(`li.chat-message[data-message-id="${msgId}"]`) ?? root);
-      _run(message, live, 'render');
-    }, 0);
+    const live = () => root.isConnected
+      ? root
+      : (root.ownerDocument.querySelector(`li.chat-message[data-message-id="${msgId}"]`) ?? root);
+    for (const d of _decorators) if (d.onRender && d.immediate) _runOne(d, message, root, 'render');
+    setTimeout(() => _run(message, live(), 'render'), 0);
+    for (const d of _decorators) {
+      if (!d.onRender) continue;
+      for (const ms of d.retry) setTimeout(() => { const el = live(); if (el.isConnected) _runOne(d, message, el, 'render'); }, ms);
+    }
   });
 
   
