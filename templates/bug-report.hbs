@@ -1,0 +1,45 @@
+<div class="ctlib-bug-root">
+<div class="ctlib-bug-body">
+  <p class="hint">{{localize "CTLIB.bugReport.intro"}}</p>
+
+  <label class="ctlib-bug-field">
+    <span class="ctlib-bug-question">{{localize "CTLIB.bugReport.module"}}</span>
+    <select name="module">
+      {{#each modules}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      <option value="">{{localize "CTLIB.bugReport.notSure"}}</option>
+    </select>
+  </label>
+
+  <label class="ctlib-bug-field">
+    <span class="ctlib-bug-question">{{localize "CTLIB.bugReport.what"}}</span>
+    <textarea name="what" rows="4" placeholder="{{localize 'CTLIB.bugReport.whatPlaceholder'}}"></textarea>
+  </label>
+
+  <label class="ctlib-bug-field">
+    <span class="ctlib-bug-question">{{localize "CTLIB.bugReport.steps"}} <span class="ctlib-bug-optional">{{localize "CTLIB.bugReport.optional"}}</span></span>
+    <textarea name="steps" rows="4" placeholder="{{localize 'CTLIB.bugReport.stepsPlaceholder'}}"></textarea>
+  </label>
+
+  <label class="ctlib-bug-field">
+    <span class="ctlib-bug-question">{{localize "CTLIB.bugReport.name"}} <span class="ctlib-bug-optional">{{localize "CTLIB.bugReport.nameOptional"}}</span></span>
+    <input type="text" name="reporter" placeholder="{{localize 'CTLIB.bugReport.namePlaceholder'}}">
+  </label>
+
+  <div class="ctlib-bug-suggestions" hidden></div>
+
+  <label class="ctlib-bug-check">
+    <input type="checkbox" name="errors" checked>
+    {{localize "CTLIB.bugReport.includeErrors" count=errorCount}}
+  </label>
+
+  <details class="ctlib-bug-preview">
+    <summary>{{localize "CTLIB.bugReport.preview"}}</summary>
+    <pre></pre>
+  </details>
+</div>
+
+<footer class="form-footer">
+  <button type="button" data-action="copy" disabled><i class="fa-solid fa-copy" inert></i> {{localize "CTLIB.bugReport.copy"}}</button>
+  <button type="button" data-action="issue" disabled><i class="fa-brands fa-github" inert></i> {{localize "CTLIB.bugReport.issue"}}</button>
+</footer>
+</div>

@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "ct-areas-cleared",
+      "module": "draw-steel-combat-tools",
+      "match": [["template", "area", "aoe", "burst", "cube", "aura"], ["delet", "disappear", "vanish", "remov", "gone", "clear", "go away", "goes away"]],
+      "text": "Combat Tools clears an ability's area off the map a few seconds after it's placed, or at the end of the turn. That's the Clear Placed Areas setting: turn it off, or give it longer with Seconds Before Clearing.",
+      "setting": { "menu": "draw-steel-combat-tools.abilityAutomationSettings", "key": "abilityTemplateCleanup" }
+    },
+    {
+      "id": "dt-pulse-never-dies",
+      "module": "draw-steel-death-tracker",
+      "match": [["flash", "red", "puls", "glow"], ["minion", "squad", "die", "dying", "dead", "death"]],
+      "text": "Minions that flashed red and never died, with Auto-Assign Damaged Minion on Death turned off, were fixed in Death Tracker 1.1.2. Update it from Foundry's setup screen.",
+      "fixedIn": "1.1.2"
+    },
+    {
+      "id": "dt-picker-short",
+      "module": "draw-steel-death-tracker",
+      "match": [["picker", "confirm", "select"], ["additional", "won't", "wont", "can't", "cant", "stuck", "refus", "not enough"]],
+      "text": "A death picker that opened short after several quick hits, so Confirm refused it, was fixed in Death Tracker 1.1.2. Update it from Foundry's setup screen.",
+      "fixedIn": "1.1.2"
+    },
+    {
+      "id": "bl-freezes",
+      "module": "draw-steel-battle-log",
+      "match": [["lag", "freez", "stutter", "slow", "hang", "hitch", "scroll"]],
+      "text": "Battle Log 1.2.1 fixed a freeze after every log change once the Resource Log grew long, which could also pull the chat around while you scrolled. Update it from Foundry's setup screen.",
+      "fixedIn": "1.2.1"
+    },
+    {
+      "id": "bl-3d-dice",
+      "module": "draw-steel-battle-log",
+      "match": [["dice", "3d", "so nice", "roll"], ["start of turn", "start of their turn", "heroic", "resource", "gain", "turn"]],
+      "text": "Hide Start of Turn Rolls hides the chat message for a hero's start of turn roll. If you use Dice So Nice, its 3D dice still roll on screen: that's Dice So Nice, and its own settings control which rolls show dice.",
+      "setting": { "key": "resourceLogTurnGainCards", "module": "draw-steel-battle-log" }
+    },
+    {
+      "id": "bl-monster-stamina",
+      "module": "draw-steel-battle-log",
+      "match": [["player"], ["stamina", "hp", "health", "damage"], ["monster", "enemy", "enemies", "npc", "hidden", "can't see", "cant see", "don't see", "dont see"]],
+      "text": "Players only see how much a monster's Stamina changed, not its totals. The Director can show the totals with Show Monster Stamina to Players.",
+      "setting": { "key": "resourceLogFullInfo", "module": "draw-steel-battle-log" }
+    },
+    {
+      "id": "ct-turn-markers",
+      "module": "draw-steel-combat-tools",
+      "match": [["turn marker", "marker", "ring"], ["setting", "animation", "image", "turn", "off", "disappear", "gone", "back", "wrong"]],
+      "text": "Squad turn markers that ignored the Combat Tracker's turn marker settings, or didn't come back after being turned off and on, were fixed in Combat Tools 1.2.2. Update it from Foundry's setup screen.",
+      "fixedIn": "1.2.2"
+    }
+  ]
+}

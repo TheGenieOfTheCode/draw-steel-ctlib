@@ -33,6 +33,43 @@
       "system": "Draw Steel",
       "module": "Other Modules",
       "core": "Foundry"
+    },
+    "notice": {
+      "bugReport": {
+        "title": "New: Report a Bug",
+        "body": "Spotted something wrong with {modules}? Click the bug icon among the chat controls, or Report a Draw Steel Module Bug in the Settings sidebar.",
+        "extra": "It fills in your versions and settings for you, and if what you describe is a known setting or an already fixed bug, it tells you as you type. You can hide the chat icon in CTLib's settings.",
+        "open": "Open the Bug Report",
+        "anyModule": "a Draw Steel module"
+      }
+    },
+    "bugReport": {
+      "title": "Report a Bug",
+      "button": "Report a Draw Steel Module Bug",
+      "intro": "Describe what went wrong and the report fills in the versions, your other modules and the settings the module uses. Look at the preview to see exactly what is shared; nothing is sent until you open the issue or copy it.",
+      "module": "Module",
+      "notSure": "Not sure which one",
+      "what": "What went wrong?",
+      "whatPlaceholder": "What you saw, and what you expected to happen instead.",
+      "steps": "Steps to reproduce",
+      "optional": "(optional, but it helps the most)",
+      "stepsPlaceholder": "1. Start a combat with a squad of minions\n2. Push one into a wall\n3. ...",
+      "name": "Preferred name or Discord username?",
+      "nameOptional": "(optional, only if you'd like credit or a reply)",
+      "namePlaceholder": "Leave it empty to stay anonymous.",
+      "includeErrors": "Include recent errors from the browser console ({count})",
+      "preview": "Preview: exactly what the report contains",
+      "copy": "Copy Report",
+      "issue": "Open GitHub Issue",
+      "copied": "Bug report copied. Paste it wherever you're reporting the bug.",
+      "tooLong": "The report is too long to fill in on GitHub, so the full version is on your clipboard. Paste it into the issue below the description.",
+      "pasteBelow": "_The full diagnostics are too long to fill in here. They are on your clipboard: paste them below this line._",
+      "noGithub": "{module} has no GitHub issues page, so the report was copied to your clipboard instead.",
+      "suggestions": "This might already have an answer:",
+      "openSetting": "Open the Setting",
+      "readMore": "Read More",
+      "settingName": "Bug Report Button in Chat",
+      "settingHint": "Shows a bug icon among the chat controls that opens the bug report. The button in the Settings sidebar stays either way."
     }
   }
 }
