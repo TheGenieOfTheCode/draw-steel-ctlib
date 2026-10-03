@@ -1,13 +1,4 @@
-export * as config from './config.mjs';
-export * as services from './services.mjs';
-export * from './token-preview.mjs';
-export * from './picker-overlay.mjs';
-export * from './helpers.mjs';
-export * from './settings-submenu.mjs';
-export * from './dstd-panel.mjs';
-export { registerStatusGroup } from './status-palette.mjs';
-export { stackedPrompt } from './stacked-prompt.mjs';
-export { getValidTargets, runColoredTokenPicker, hitToken } from './token-picker.mjs';
-export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';
-export { DAMAGE_TYPES, damageTypeLabel, damageTypeIconHTML } from './damage-types.mjs';
-export { RESOURCE_TOKENS, drawResourceToken, resourceTokenURI, resourceTokenHTML } from './resource-tokens.mjs';
+
+export * from './api.mjs';
+import { settingsSubmenu } from './settings-submenu.mjs';
+export const SettingsSubmenu = settingsSubmenu();

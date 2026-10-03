@@ -1,10 +1,12 @@
-import * as ctlib from './index.mjs';
+import * as ctlib from './api.mjs';
 import { reviveDropKeys, initPalette } from './helpers.mjs';
 import { setSocket } from './socket.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
+
+globalThis.ctlib = ctlib;
 
 Hooks.once('socketlib.ready', () => {
   const socket = socketlib.registerModule(MODULE_ID);

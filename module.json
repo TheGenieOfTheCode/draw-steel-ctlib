@@ -10,6 +10,7 @@
   "license": "https://github.com/TheGenieOfTheCode/draw-steel-ctlib/blob/main/LICENSE",
   "changelog": "https://github.com/TheGenieOfTheCode/draw-steel-ctlib/releases",
   "socket": true,
+  "library": true,
   "compatibility": { "minimum": "14", "verified": "14" },
   "authors": [{ "name": "Ady", "discord": "AdyGenie" }],
   "url": "https://github.com/TheGenieOfTheCode/draw-steel-ctlib",

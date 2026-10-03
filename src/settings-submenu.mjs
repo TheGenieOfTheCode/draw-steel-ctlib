@@ -1,7 +1,8 @@
 
 const debugOn = (id) => !!id && game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
 
-export class SettingsSubmenu extends ds.applications.api.DSApplication {
+let _class = null;
+export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds.applications.api.DSApplication {
   static DEFAULT_OPTIONS = {
     classes:  ['draw-steel'],
     window:   { minimizable: false, resizable: true },
@@ -215,7 +216,7 @@ export class SettingsSubmenu extends ds.applications.api.DSApplication {
       def.requiresReload && game.settings.get(id, k) !== before.get(k));
     if (needsReload) foundry.applications.settings.SettingsConfig.reloadConfirm({ world: true });
   }
-}
+};
 
 Handlebars.registerPartial('dsctReloadBadge', `
 {{#if needsReload}}
