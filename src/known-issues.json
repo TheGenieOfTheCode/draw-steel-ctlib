@@ -49,6 +49,13 @@
       "match": [["turn marker", "marker", "ring"], ["setting", "animation", "image", "turn", "off", "disappear", "gone", "back", "wrong"]],
       "text": "Squad turn markers that ignored the Combat Tracker's turn marker settings, or didn't come back after being turned off and on, were fixed in Combat Tools 1.2.2. Update it from Foundry's setup screen.",
       "fixedIn": "1.2.2"
+    },
+    {
+      "id": "bl-flat-gain-shown",
+      "module": "draw-steel-battle-log",
+      "match": [["gain", "essence", "start of turn", "heroic resource", "resource roll"], ["still", "shown", "show", "not hidden", "hide", "visible", "appear"]],
+      "text": "A flat start of turn gain, like an Elementalist's 2 Essence, that stayed in chat while rolled gains were hidden behind their log line, was fixed in Battle Log 1.3.0. Update it from Foundry's setup screen.",
+      "fixedIn": "1.3.0"
     }
   ]
 }
