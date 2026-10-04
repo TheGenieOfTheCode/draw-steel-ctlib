@@ -95,13 +95,14 @@ export const hasTags = (obj, tag) => {
 
 export const getTags = (obj) => taggerActive() ? Tagger.getTags(obj) : _tags(obj);
 
+const _taggable = () => {
+  const scene = canvas.scene;
+  return scene ? [...scene.walls.contents, ...scene.tiles.contents, ...scene.tokens.contents] : [];
+};
+
 export const getByTag = (tag) => {
-  if (taggerActive()) return Tagger.getByTag(tag);
-  const results = [];
-  for (const w of canvas.scene?.walls?.contents ?? [])  { if (_tags(w).includes(tag))  results.push(w); }
-  for (const t of canvas.scene?.tiles?.contents ?? [])  { if (_tags(t).includes(tag))  results.push(t); }
-  for (const t of canvas.scene?.tokens?.contents ?? []) { if (_tags(t).includes(tag))  results.push(t); }
-  return results;
+  if (taggerActive()) return Tagger.getByTag(tag, { objects: _taggable() });
+  return _taggable().filter(doc => _tags(doc).includes(tag));
 };
 
 export const addTags = async (obj, tags) => {
