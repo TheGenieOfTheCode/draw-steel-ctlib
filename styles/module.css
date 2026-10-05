@@ -558,3 +558,6 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 .ctlib-req-unmet > .hint {
   opacity: 0.55;
 }
+
+.form-group:has(> label > .ctlib-req-badge) > label { flex: 2 1 0; }
+.form-group:has(> label > .ctlib-req-badge) > .form-fields:has(> input[type="checkbox"]:only-child) { flex: 0 0 auto; width: auto; }
