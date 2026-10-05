@@ -1,3 +1,4 @@
+import { markRequirement } from './module-requirements.mjs';
 
 const debugOn = (id) => !!id && game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
 
@@ -175,6 +176,12 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       sync();
     });
 
+    const id = this.constructor.moduleId;
+    el.querySelectorAll('.form-group [name]').forEach((input) => {
+      const def = game.settings.settings.get(`${id}.${input.name}`);
+      if (def?.requiresModule) markRequirement(input.closest('.form-group'), null, def);
+    });
+
     el.querySelector('#dsct-sub-save-btn')?.addEventListener('click', async () => {
       await this._doSave();
       this.close();
@@ -197,7 +204,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       const def   = game.settings.settings.get(`${id}.${k}`);
       if (!def) continue;
       const input = el.querySelector(`[name="${k}"]`);
-      if (!input) continue;
+      if (!input || input.disabled && def.requiresModule) continue;
       entries.push({ k, def, input });
     }
 

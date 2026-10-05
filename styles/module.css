@@ -534,3 +534,27 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 .ctlib-notice-head { font-weight: bold; font-size: var(--font-size-14, 14px); }
 .ctlib-notice-head i { margin-right: 0.3rem; }
 .ctlib-notice button { margin-top: 0.2rem; }
+
+.ctlib-req-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  font-size: 0.72em;
+  font-weight: bold;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: help;
+}
+.ctlib-req-active    { color: light-dark(#2d7a2d, #6fcf6f); background: light-dark(rgba(50, 160, 50, 0.12), rgba(80, 200, 80, 0.12)); }
+.ctlib-req-installed { color: light-dark(#8a6a10, #e0b84a); background: light-dark(rgba(200, 160, 30, 0.15), rgba(220, 180, 60, 0.12)); }
+.ctlib-req-missing   { color: light-dark(#a33333, #f07a7a); background: light-dark(rgba(200, 60, 60, 0.12), rgba(230, 90, 90, 0.12)); }
+
+.ctlib-req-unmet > label { color: color-mix(in srgb, currentColor 55%, transparent); }
+.ctlib-req-unmet > .form-fields,
+.ctlib-req-unmet > .hint {
+  opacity: 0.55;
+}

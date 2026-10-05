@@ -12,3 +12,4 @@ export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portr
 export { DAMAGE_TYPES, damageTypeLabel, damageTypeIconHTML } from './damage-types.mjs';
 export { RESOURCE_TOKENS, drawResourceToken, resourceTokenURI, resourceTokenHTML } from './resource-tokens.mjs';
 export { openBugReport, reportableModules, suggestFixes } from './bug-report.mjs';
+export { settingRequirement, moduleState, requirementMet, requiredSetting, requirementBadgeHTML, markRequirement } from './module-requirements.mjs';

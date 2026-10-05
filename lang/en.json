@@ -27,7 +27,12 @@
       "iconPreview": "Current icon preview",
       "save": "Save Changes",
       "reload": "Reload",
-      "reloadTooltip": "This one only takes full effect once you reload the world."
+      "reloadTooltip": "This one only takes full effect once you reload the world.",
+      "requires": {
+        "active": "{module} is active.",
+        "installed": "{module} is installed but not enabled in this world. This setting does nothing until it is.",
+        "missing": "{module} is not installed. This setting does nothing until it is."
+      }
     },
     "statusGroup": {
       "system": "Draw Steel",
