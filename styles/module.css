@@ -561,3 +561,7 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 
 .form-group:has(> label > .ctlib-req-badge) > label { flex: 2 1 0; }
 .form-group:has(> label > .ctlib-req-badge) > .form-fields:has(> input[type="checkbox"]:only-child) { flex: 0 0 auto; width: auto; }
+
+#chat-controls > #message-modes { flex-shrink: 0; }
+#chat-controls > .control-buttons { flex: 0 1 auto; min-width: 0; }
+#chat-controls > .control-buttons > .ui-control { flex: 0 1 var(--control-size, 32px); min-width: 24px; }
