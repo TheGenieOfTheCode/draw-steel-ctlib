@@ -4,6 +4,7 @@ export * from './token-preview.mjs';
 export * from './picker-overlay.mjs';
 export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
+export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 export * from './dstd-panel.mjs';
 export { registerStatusGroup } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';

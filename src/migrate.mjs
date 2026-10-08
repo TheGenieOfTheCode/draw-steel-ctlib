@@ -1,4 +1,5 @@
 import { CTLIB_SCOPE, LEGACY_SCOPE } from './helpers.mjs';
+import { isPrimaryGM } from './primary-director.mjs';
 
 const MARKER = 'migratedFromCombatTools';
 
@@ -59,7 +60,7 @@ const migrateEmbedded = async (scene, name) => {
 export const registerMigration = () => {
   game.settings.register(CTLIB_SCOPE, MARKER, { scope: 'world', config: false, type: Boolean, default: false });
   Hooks.once('ready', async () => {
-    if (!game.users.activeGM?.isSelf) return;
+    if (!isPrimaryGM()) return;
     if (game.settings.get(CTLIB_SCOPE, MARKER)) return;
     let count = 0;
     const step = async (label, fn) => {

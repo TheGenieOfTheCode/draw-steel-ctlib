@@ -1,6 +1,9 @@
 import { beginPickerOverlay } from './picker-overlay.mjs';
 import * as config from './config.mjs';
 import { getSocket } from './socket.mjs';
+import { executeAsDirector } from './primary-director.mjs';
+
+const asDirector = (handler, ...args) => executeAsDirector(getSocket(), handler, ...args);
 
 export const MATERIAL_RULE_DEFAULTS = {
   glass: { cost: 1, damage: 3,  alpha: 0.1 },
@@ -917,7 +920,7 @@ export const safeUpdate = async (document, data, options = {}) => {
     options = { ...rest, movement: { [document.id]: { waypoints: [{ x, y, action: 'displace' }] } } };
   }
   if (document.isOwner) return await document.update(data, options);
-  return await getSocket().executeAsGM('ctlib.updateDocument', document.uuid, data, options);
+  return await asDirector('ctlib.updateDocument', document.uuid, data, options);
 };
 
 export const safeDelete = async (document, options = {}) => {
@@ -926,13 +929,13 @@ export const safeDelete = async (document, options = {}) => {
     
     if (!(await fromUuid(document.uuid))) return;
     if (document.isOwner) return await document.delete(options);
-    return await getSocket().executeAsGM('ctlib.deleteDocument', document.uuid, options);
+    return await asDirector('ctlib.deleteDocument', document.uuid, options);
   } catch (_) {}
 };
 
 export const safeCreateEmbedded = async (parent, type, data) => {
   if (parent.isOwner) return await parent.createEmbeddedDocuments(type, data);
-  return await getSocket().executeAsGM('ctlib.createEmbedded', parent.uuid, type, data);
+  return await asDirector('ctlib.createEmbedded', parent.uuid, type, data);
 };
 
 export const dropKey = () => new foundry.data.operators.ForcedDeletion();
@@ -957,7 +960,7 @@ export const safeSetFlag = async (document, scope, key, value) =>
 
 export const safeToggleStatusEffect = async (actor, effectId, options = {}) => {
   if (actor.isOwner) return await actor.toggleStatusEffect(effectId, options);
-  return await getSocket().executeAsGM('ctlib.toggleStatusEffect', actor.uuid, effectId, options);
+  return await asDirector('ctlib.toggleStatusEffect', actor.uuid, effectId, options);
 };
 
 export const undoDamage = async (actor, { prevTemp, prevValue, prevSquadHP, squadGroup }) => {
