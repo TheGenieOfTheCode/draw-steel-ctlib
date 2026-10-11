@@ -5,14 +5,15 @@
   --dsct-border:       #b0a8cc;
   --dsct-border-outer: #7060a8;
   --dsct-text:         #3a3060;
-  --dsct-text-dim:     #8880aa;
+  --dsct-text-dim:     #625a88;
   --dsct-text-label:   #5040a0;
   --dsct-accent:       #7a50c0;
+  --dsct-accent-text:  #6a44b0;
   --dsct-accent-red:   #a03030;
   --dsct-accent-green: #206040;
   --dsct-text-active:    #4030a0;
   --dsct-text-mimic:     #7a5a30;
-  --dsct-text-mimic-dim: #9088b0;
+  --dsct-text-mimic-dim: #625a88;
   --dsct-border-panel:   #c8c0e0;
   --dsct-mimic-label:    #5a4070;
   --dsct-animal-label:   #6a5a8a;
