@@ -6,7 +6,7 @@ export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
 export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 export * from './dstd-panel.mjs';
-export { registerStatusGroup } from './status-palette.mjs';
+export { registerStatusGroup, groupStatuses } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';
 export { getValidTargets, runColoredTokenPicker, hitToken } from './token-picker.mjs';
 export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';

@@ -2,7 +2,6 @@
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-/** The module a setting needs, as { id, label }, or null. */
 export function settingRequirement(def) {
   const req = def?.requiresModule;
   if (!req) return null;
@@ -12,7 +11,6 @@ export function settingRequirement(def) {
   return { id, label };
 }
 
-/** 'active', 'installed' (present but not enabled in this world) or 'missing'. */
 export function moduleState(id) {
   const mod = game.modules.get(id);
   if (mod?.active) return 'active';
@@ -24,7 +22,6 @@ export const requirementMet = (def) => {
   return !req || moduleState(req.id) === 'active';
 };
 
-/** A setting's value, or false while the module it requires is not active. */
 export function requiredSetting(namespace, key) {
   const def = game.settings.settings.get(`${namespace}.${key}`);
   if (!def) return undefined;
@@ -33,7 +30,6 @@ export function requiredSetting(namespace, key) {
 
 const ICONS = { active: 'fa-check', installed: 'fa-plug-circle-exclamation', missing: 'fa-xmark' };
 
-/** The badge for a setting's requirement, or '' when it has none. */
 export function requirementBadgeHTML(def) {
   const req = settingRequirement(def);
   if (!req) return '';
@@ -43,7 +39,6 @@ export function requirementBadgeHTML(def) {
     + `<i class="fas ${ICONS[state]}" inert></i> ${esc(req.label)}</span>`;
 }
 
-/** Badge, and if unmet grey out and disable, the form group of one setting inside a rendered settings form. */
 export function markRequirement(group, label, def) {
   if (!group || group.querySelector('.ctlib-req-badge')) return;
   const html = requirementBadgeHTML(def);

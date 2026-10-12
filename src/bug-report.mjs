@@ -279,7 +279,7 @@ const addChatButton = (controls = document.getElementById('chat-controls')) => {
   if (!controls) return;
   controls.querySelector('.ctlib-bug-report-button')?.remove();
   let shown = true;
-  try { shown = game.settings.get(MODULE_ID, 'bugReportChatButton'); } catch { /* not registered yet */ }
+  try { shown = game.settings.get(MODULE_ID, 'bugReportChatButton'); } catch {  }
   if (!shown) return;
   let group = controls.querySelector('.control-buttons');
   if (!group) {

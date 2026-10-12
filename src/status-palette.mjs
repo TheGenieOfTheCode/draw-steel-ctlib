@@ -28,6 +28,19 @@ const _groupOf = (id, systemIds) => {
   return 'module';
 };
 
+export const groupStatuses = (ids) => {
+  const systemIds = _systemIds();
+  const buckets = new Map();
+  for (const id of ids) {
+    const key = _groupOf(id, systemIds);
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(id);
+  }
+  return [...buckets.entries()]
+    .sort(([a], [b]) => (_groups.get(a)?.order ?? 50) - (_groups.get(b)?.order ?? 50))
+    .map(([key, statuses]) => ({ key, label: _groups.get(key)?.label ?? key, statuses }));
+};
+
 function _groupPalette(hud, html) {
   const root = html instanceof HTMLElement ? html : html?.[0];
   const pane = root?.querySelector('section.effect-pane');
