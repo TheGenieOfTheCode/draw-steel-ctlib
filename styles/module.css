@@ -321,8 +321,23 @@ body #token-hud .status-effects.palette {
 }
 
 body #token-hud .status-effects.palette section.effect-pane {
-  grid-template-columns: repeat(3, 145px);
+  grid-template-columns: repeat(3, 180px);
+  column-gap: 4px;
+  font-size: 18px;
+  align-items: stretch;
+}
+
+body #token-hud .status-effects.palette section.effect-pane div.effect-group {
   align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+body #token-hud .status-effects.palette section.effect-pane div.effect-group > img {
+  order: -1;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
 }
 
 body #token-hud .status-effects.palette section.effect-pane span.title.ellipsis {
@@ -340,7 +355,7 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header 
   grid-column: 1 / -1;
   margin: 6px 0 2px;
   border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  font-size: var(--font-size-11);
+  font-size: 13px;
   font-weight: bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
