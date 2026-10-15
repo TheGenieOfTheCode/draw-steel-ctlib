@@ -2,7 +2,7 @@
 export const DAMAGE_TYPES = Object.freeze({
   acid:       { icon: 'fa-solid fa-flask-vial',          dark: '#6fbf4a', light: '#3d7a22' },
   cold:       { icon: 'fa-solid fa-snowflake',           dark: '#65c7f7', light: '#1f72a8' },
-  corruption: { icon: 'fa-brands fa-galactic-republic',  dark: '#9b59b6', light: '#7d3c98' },
+  corruption: { icon: 'fa-solid fa-galaxy',              dark: '#9b59b6', light: '#7d3c98' },
   fire:       { icon: 'fa-solid fa-fire',                dark: '#e74c3c', light: '#c0392b' },
   holy:       { icon: 'fa-solid fa-sun',                 dark: '#f1c40f', light: '#8a6d00' },
   lightning:  { icon: 'fa-solid fa-bolt',                dark: '#f7dc6f', light: '#8c7300' },
