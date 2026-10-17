@@ -19,7 +19,7 @@ export function registerCgmpGuard() {
       if (!was) return;
       before.delete(message);
       const now = message._source;
-      if (now.style !== was.style || !foundry.utils.objectsEqual(now.speaker, was.speaker)) message.updateSource(was);
+      if (now.style !== was.style || !foundry.utils.equals(now.speaker, was.speaker)) message.updateSource(was);
     });
   });
 }
