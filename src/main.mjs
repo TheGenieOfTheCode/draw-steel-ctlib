@@ -5,6 +5,7 @@ import './notices.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
+import { registerCgmpGuard } from './cgmp.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -24,6 +25,7 @@ Hooks.once('init', () => {
   registerPrimaryDirector();
   registerStatusPalette();
   registerMigration();
+  registerCgmpGuard();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
 });
