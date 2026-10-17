@@ -4,6 +4,7 @@ import { setSocket } from './socket.mjs';
 import './notices.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
+import { registerCgmpGuard } from './cgmp.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -22,6 +23,7 @@ Hooks.once('init', () => {
   game.modules.get(MODULE_ID).api = ctlib;
   registerStatusPalette();
   registerMigration();
+  registerCgmpGuard();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
 });
