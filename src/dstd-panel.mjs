@@ -20,11 +20,14 @@ export const registerPanelDecorator = ({
   if (typeof decorate !== 'function') throw new TypeError(`CTLib | Target Damage panel | "${id}" needs a decorate function`);
   const at = _decorators.findIndex((d) => d.id === id);
   if (at >= 0) _decorators.splice(at, 1);
-  _decorators.push({ id, priority, decorate, onRender, onMutation, watch, retry, immediate });
+  _decorators.push({ id, priority, decorate, onRender, onMutation, watch, retry, immediate, watchSelector: watch === 'any' ? null : watch.join(', ') });
   _decorators.sort((a, b) => a.priority - b.priority);
   for (const selector of ignore) _ignore.add(selector);
+  _ignoreSelector = _ignore.size ? [..._ignore].join(', ') : null;
   _start();
 };
+
+let _ignoreSelector = null;
 
 export const describePanelDecorators = () => _decorators.map((d) => `${d.priority} ${d.id}`);
 
@@ -56,11 +59,30 @@ const _run = async (message, root, trigger, only = null) => {
 };
 
 const _watches = (d, node) => d.watch === 'any'
-  || d.watch.some((s) => node.matches?.(s) || node.querySelector?.(s));
+  || node.matches(d.watchSelector) || !!node.querySelector(d.watchSelector);
 
-const _ignored = (node) => [..._ignore].some((s) => node.matches?.(s) || node.closest?.(s));
+const _ignored = (node) => !!_ignoreSelector && !!node.closest(_ignoreSelector);
+
+const MESSAGE_LI = 'li.chat-message[data-message-id]';
+const _pending = { targets: new Set(), added: new Set(), scheduled: false };
 
 const _onMutations = (mutations) => {
+  if (!dstdActive()) return;
+  for (const mutation of mutations) {
+    if (mutation.target instanceof HTMLElement) _pending.targets.add(mutation.target);
+    for (const node of mutation.addedNodes) if (node.nodeType === Node.ELEMENT_NODE) _pending.added.add(node);
+  }
+  if (_pending.scheduled) return;
+  _pending.scheduled = true;
+  setTimeout(_flushMutations, 0);
+};
+
+const _flushMutations = () => {
+  const targets = [..._pending.targets];
+  const added = [..._pending.added];
+  _pending.targets.clear();
+  _pending.added.clear();
+  _pending.scheduled = false;
   if (!dstdActive()) return;
   const touched = new Map();
   const touch = (li, d) => {
@@ -69,17 +91,18 @@ const _onMutations = (mutations) => {
   };
   const watchers = _decorators.filter((d) => d.onMutation);
   const anyWatchers = watchers.filter((d) => d.watch === 'any');
-  for (const mutation of mutations) {
-    if (anyWatchers.length && mutation.target instanceof HTMLElement && !_ignored(mutation.target)) {
-      const li = mutation.target.closest('li.chat-message[data-message-id]');
+  if (anyWatchers.length) {
+    for (const target of targets) {
+      if (!target.isConnected || _ignored(target)) continue;
+      const li = target.closest(MESSAGE_LI);
       if (li) for (const d of anyWatchers) touch(li, d);
     }
-    for (const node of mutation.addedNodes) {
-      if (node.nodeType !== Node.ELEMENT_NODE || _ignored(node)) continue;
-      const li = node.closest?.('li.chat-message[data-message-id]');
-      if (!li) continue;
-      for (const d of watchers) if (_watches(d, node)) touch(li, d);
-    }
+  }
+  for (const node of added) {
+    if (!node.isConnected || _ignored(node)) continue;
+    const li = node.closest(MESSAGE_LI);
+    if (!li) continue;
+    for (const d of watchers) if (_watches(d, node)) touch(li, d);
   }
   for (const [li, only] of touched) {
     const message = game.messages.get(li.dataset.messageId);
