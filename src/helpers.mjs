@@ -84,6 +84,13 @@ export const initPalette = () => {
 
 const taggerActive = () => game.modules.get('tagger')?.active;
 
+export const reducedEffects = () => {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true;
+  try {
+    return (canvas?.performance?.mode ?? game.settings.get('core', 'performanceMode')) === CONST.CANVAS_PERFORMANCE_MODES.LOW;
+  } catch { return false; }
+};
+
 export const CTLIB_SCOPE = 'draw-steel-ctlib';
 export const LEGACY_SCOPE = 'draw-steel-combat-tools';
 
