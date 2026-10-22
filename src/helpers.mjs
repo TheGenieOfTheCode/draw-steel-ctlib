@@ -117,15 +117,26 @@ export const getByTag = (tag) => {
   return _taggable().filter(doc => _tags(doc).includes(tag));
 };
 
+const _relayTags = (obj) => {
+  const doc = _doc(obj);
+  return !!doc?.uuid && !doc.isOwner;
+};
+
 export const addTags = async (obj, tags) => {
-  if (taggerActive()) return Tagger.addTags(obj, tags);
+  if (taggerActive()) {
+    if (_relayTags(obj)) return await asDirector('ctlib.addTags', _doc(obj).uuid, tags);
+    return Tagger.addTags(obj, tags);
+  }
   const doc  = _doc(obj);
   const curr = _tags(obj);
   await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: [...new Set([...curr, ...tags])] });
 };
 
 export const removeTags = async (obj, tags) => {
-  if (taggerActive()) return Tagger.removeTags(obj, tags);
+  if (taggerActive()) {
+    if (_relayTags(obj)) return await asDirector('ctlib.removeTags', _doc(obj).uuid, tags);
+    return Tagger.removeTags(obj, tags);
+  }
   const doc  = _doc(obj);
   const curr = _tags(obj);
   await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: curr.filter(t => !tags.includes(t)) });

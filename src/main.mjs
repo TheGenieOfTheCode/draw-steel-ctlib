@@ -17,6 +17,8 @@ Hooks.once('socketlib.ready', () => {
   socket.register('ctlib.deleteDocument',     async (uuid, options = {}) => { const doc = await fromUuid(uuid); if (doc) return await doc.delete(options); });
   socket.register('ctlib.createEmbedded',     async (parentUuid, type, data) => { const parent = await fromUuid(parentUuid); if (parent) return await parent.createEmbeddedDocuments(type, data); });
   socket.register('ctlib.toggleStatusEffect', async (uuid, effectId, options) => { const actor = await fromUuid(uuid); if (actor) return await actor.toggleStatusEffect(effectId, options); });
+  socket.register('ctlib.addTags',            async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.addTags(doc, tags); });
+  socket.register('ctlib.removeTags',         async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.removeTags(doc, tags); });
   setSocket(socket);
 });
 
