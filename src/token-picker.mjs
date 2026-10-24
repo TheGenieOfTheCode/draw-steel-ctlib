@@ -115,6 +115,9 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
       tokens,
       showConfirm: false,
       onCancel: () => { cleanup(); resolve(null); },
+      controls: [{ input: 'CTLIB.picker.help.click', action: 'CTLIB.picker.help.chooseToken' }],
+      cancelOnRightClick: !!config.get('cancelOnRightClick'),
+      onRightClick: () => { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } },
     });
 
     const cleanup = () => {
@@ -124,7 +127,6 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
       canvas.stage.off('mousedown', onClick);
       canvas.stage.off('mousemove', onMove);
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('contextmenu', onContextMenu);
     };
 
     let hoverId = null;
@@ -141,10 +143,6 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
     };
 
     const onClick = (event) => {
-      if (event.data.originalEvent.button === 2) {
-        if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); }
-        return;
-      }
       if (event.data.originalEvent.button !== 0) return;
       const hit = hitToken(event.data.getLocalPosition(canvas.app.stage), tokens);
       if (!hit) return;
@@ -154,11 +152,9 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
     };
 
     const onKey           = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cleanup(); resolve(null); } };
-    const onContextMenu   = (e) => { e.preventDefault(); if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } };
 
     canvas.stage.on('mousedown', onClick);
     canvas.stage.on('mousemove', onMove);
     document.addEventListener('keydown', onKey);
-    document.addEventListener('contextmenu', onContextMenu);
   });
 }

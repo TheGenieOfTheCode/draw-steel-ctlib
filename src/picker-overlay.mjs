@@ -50,7 +50,45 @@ function _frameView(rects) {
   canvas.animatePan({ x: (x0 + x1) / 2, y: (y0 + y1) / 2, scale, duration: 450 });
 }
 
-export function beginPickerOverlay({ title, status = '', detail = '', tokens = [], holeRects = null, dim = true, hideUi = true, uiToggle = false, onUiToggle = null, showConfirm = true, showCancel = true, onConfirm = null, onCancel = null, frame = null, extraButtons = [], buttonGrid = false } = {}) {
+const RIGHT_CLICK_SLOP = 6;
+
+
+export function watchRightClick(onRightClick) {
+  let downAt = null;
+  const onDown = (event) => { downAt = { x: event.global.x, y: event.global.y }; };
+  const onUp = (event) => {
+    const start = downAt;
+    downAt = null;
+    if (!start || Math.hypot(event.global.x - start.x, event.global.y - start.y) > RIGHT_CLICK_SLOP) return;
+    onRightClick(event);
+  };
+  const onContextMenu = (event) => { if (event.target?.closest?.('#board')) event.preventDefault(); };
+  canvas.stage.on('rightdown', onDown);
+  canvas.stage.on('rightup', onUp);
+  document.addEventListener('contextmenu', onContextMenu);
+  return () => {
+    canvas.stage?.off('rightdown', onDown);
+    canvas.stage?.off('rightup', onUp);
+    document.removeEventListener('contextmenu', onContextMenu);
+  };
+}
+
+
+function _helpHtml({ controls, cancelOnRightClick, rightDragPans, scrollZooms }) {
+  const loc = (s) => foundry.utils.escapeHTML(game.i18n.localize(s ?? ''));
+  const row = (input, action) => `<dt>${loc(input)}</dt><dd>${loc(action)}</dd>`;
+  const own = controls.filter(c => c?.input && c?.action).map(c => row(c.input, c.action));
+  if (cancelOnRightClick) own.push(row('CTLIB.picker.help.rightClick', 'CTLIB.picker.help.cancel'));
+  const map = [
+    rightDragPans && row('CTLIB.picker.help.rightDrag', 'CTLIB.picker.help.pan'),
+    row('CTLIB.picker.help.arrows', 'CTLIB.picker.help.pan'),
+    scrollZooms && row('CTLIB.picker.help.scroll', 'CTLIB.picker.help.zoom'),
+  ].filter(Boolean);
+  const section = (heading, rows) => (rows.length ? `<h4>${loc(heading)}</h4>${rows.join('')}` : '');
+  return `<dl class="dsct-picker-help-body">${section('CTLIB.picker.help.title', own)}${section('CTLIB.picker.help.map', map)}</dl>`;
+}
+
+export function beginPickerOverlay({ title, status = '', detail = '', tokens = [], holeRects = null, dim = true, hideUi = true, uiToggle = false, onUiToggle = null, showConfirm = true, showCancel = true, onConfirm = null, onCancel = null, frame = null, extraButtons = [], buttonGrid = false, controls = [], cancelOnRightClick = false, rightDragPans = true, scrollZooms = true, onRightClick = null } = {}) {
   endPickerOverlay();
 
   if (hideUi) document.body.classList.add('dsct-prominent-picker');
@@ -86,6 +124,15 @@ export function beginPickerOverlay({ title, status = '', detail = '', tokens = [
     b.addEventListener('click', (ev) => { ev.preventDefault(); eb.onClick?.(); });
     btnsEl.insertBefore(b, btnsEl.querySelector('.dsct-picker-confirm'));
   }
+  const help = document.createElement('span');
+  help.className = 'dsct-picker-help';
+  help.textContent = '?';
+  help.tabIndex = 0;
+  help.ariaLabel = game.i18n.localize('CTLIB.picker.help.title');
+  help.dataset.tooltipHtml = _helpHtml({ controls, cancelOnRightClick, rightDragPans, scrollZooms });
+  help.dataset.tooltipDirection = 'DOWN';
+  help.dataset.tooltipClass = 'dsct-picker-help-tip';
+  btnsEl.appendChild(help);
   bar.querySelector('.dsct-picker-confirm').addEventListener('click', (e) => { e.preventDefault(); _ov?.onConfirm?.(); });
   bar.querySelector('.dsct-picker-cancel').addEventListener('click', (e) => { e.preventDefault(); _ov?.onCancel?.(); });
   bar.querySelector('.dsct-picker-uitoggle').addEventListener('click', (e) => {
@@ -116,6 +163,7 @@ export function beginPickerOverlay({ title, status = '', detail = '', tokens = [
     lastStatus: status ?? '',
     warnTimer: null,
     onConfirm, onCancel, onUiToggle,
+    stopRightClick: onRightClick ? watchRightClick(onRightClick) : null,
   };
   _redrawGrey();
   if (frame ?? dim) {
@@ -173,6 +221,7 @@ export function revealPickerUi() {
 export function endPickerOverlay(focus = null) {
   if (!_ov) return;
   clearTimeout(_ov.warnTimer);
+  _ov.stopRightClick?.();
   document.body.classList.remove('dsct-prominent-picker');
   _ov.bar.remove();
   if (_ov.container) {

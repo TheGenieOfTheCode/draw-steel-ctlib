@@ -1,4 +1,4 @@
-import { beginPickerOverlay } from './picker-overlay.mjs';
+import { beginPickerOverlay, watchRightClick } from './picker-overlay.mjs';
 import * as config from './config.mjs';
 import { getSocket } from './socket.mjs';
 import { executeAsDirector } from './primary-director.mjs';
@@ -1145,6 +1145,7 @@ export const chooseFreeSquare = (targetToken, landedOnToken = null, { forceOnCan
   };
 
   const onClick = (e) => {
+    if (e.data.button !== 0) return;
     const pos    = e.data.getLocalPosition(canvas.app.stage);
     const gpos   = toGrid(pos);
     const chosen = candidates.find(g => g.x === gpos.x && g.y === gpos.y);
@@ -1183,6 +1184,7 @@ export const chooseFreeSquare = (targetToken, landedOnToken = null, { forceOnCan
     holeRects,
     showConfirm: false,
     onCancel: doCancel,
+    controls: [{ input: 'CTLIB.picker.help.click', action: 'CTLIB.picker.help.chooseSquare' }],
   });
 });
 
@@ -1321,7 +1323,7 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
     overlay.off('pointermove', onMove);
     overlay.off('pointerdown', onClick);
     document.removeEventListener('keydown', onKeyDown);
-    document.removeEventListener('contextmenu', onContextMenu);
+    stopRightClick();
     canvas.app.stage.removeChild(overlay);
     canvas.app.stage.removeChild(graphics);
     graphics.destroy();
@@ -1334,7 +1336,7 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
   };
 
   const onClick = (e) => {
-    if (e.data.button === 2) { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } return; }
+    if (e.data.button !== 0) return;
     const result = hitTest(e.data.getLocalPosition(canvas.app.stage));
     if (result == null) return;
     cleanup();
@@ -1342,12 +1344,11 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
   };
 
   const onKeyDown = (e) => { if (e.key === 'Escape') { cleanup(); resolve(null); } };
-  const onContextMenu = (e) => { e.preventDefault(); };
 
   overlay.on('pointermove', onMove);
   overlay.on('pointerdown', onClick);
   document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('contextmenu', onContextMenu);
+  const stopRightClick = watchRightClick(() => { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } });
   redraw();
   if (hint) ui.notifications.info(hint);
 });

@@ -14,7 +14,23 @@
       "toggleUi": "Toggle the rest of the UI",
       "titleSquare": "Pick a Square",
       "chooseLanding": "Choose where {name} lands. Escape to skip.",
-      "titleSource": "Pick a Token"
+      "titleSource": "Pick a Token",
+      "help": {
+        "title": "Controls",
+        "map": "Map",
+        "rightClick": "Right-click",
+        "rightDrag": "Right-drag",
+        "arrows": "Arrow keys",
+        "scroll": "Scroll",
+        "cancel": "Cancel",
+        "pan": "Move the view",
+        "zoom": "Zoom in and out",
+        "click": "Click",
+        "doubleClickEmpty": "Double-click empty map",
+        "chooseToken": "Choose a token",
+        "toggleToken": "Pick or unpick a token",
+        "chooseSquare": "Choose a lit square"
+      }
     },
     "coverImmunity": {
       "name": "Covered by {name}"
