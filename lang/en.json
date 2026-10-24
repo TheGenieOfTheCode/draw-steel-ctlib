@@ -8,6 +8,18 @@
     "faces": {
       "notOnScene": "{name} is not on this scene."
     },
+    "tip": {
+      "pillFrom": "From {source}.",
+      "face": { "category": "Creature", "body": "Click to ping it on the map. Shift-click to pull everyone's view to it." },
+      "damageType": { "category": "Damage Type", "body": "Immunity and weakness to {type} change this damage." },
+      "resource": { "category": "Resource" },
+      "requirement": { "category": "Needs a Module" },
+      "bugReport": { "category": "CTLib", "body": "Report a bug in a Draw Steel module. It fills in your versions and settings, and points out known fixes as you type." },
+      "toggleUi": { "title": "Interface", "category": "Picker" },
+      "reload": { "title": "Reload", "category": "Setting" },
+      "browseFiles": { "title": "Browse Files", "category": "Setting", "body": "Pick an image from your files." },
+      "iconPreview": { "title": "Current Icon", "category": "Setting", "body": "The image this setting uses now." }
+    },
     "picker": {
       "confirm": "Confirm",
       "cancel": "Cancel",

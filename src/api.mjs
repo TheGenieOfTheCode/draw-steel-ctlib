@@ -2,6 +2,7 @@ export * as config from './config.mjs';
 export * as services from './services.mjs';
 export * from './token-preview.mjs';
 export * from './picker-overlay.mjs';
+export { TIP_CLASS, richTip, tipFrom, setTip, tipAttrs, pillTip, richifyTooltips, textTip } from './rich-tips.mjs';
 export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
 export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';

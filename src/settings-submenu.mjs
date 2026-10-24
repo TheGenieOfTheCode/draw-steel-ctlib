@@ -227,7 +227,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
 
 Handlebars.registerPartial('dsctReloadBadge', `
 {{#if needsReload}}
-<span class="dsct-reload-badge" data-tooltip="{{localize 'CTLIB.settings.reloadTooltip'}}">
+<span class="dsct-reload-badge" {{richTip "CTLIB.tip.reload" body=(localize 'CTLIB.settings.reloadTooltip')}}>
   <i class="fas fa-rotate-right"></i> {{localize 'CTLIB.settings.reload'}}
 </span>
 {{/if}}`);

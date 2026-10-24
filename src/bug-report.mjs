@@ -1,3 +1,5 @@
+import { setTip, tipFrom } from './rich-tips.mjs';
+
 const MODULE_ID = 'draw-steel-ctlib';
 const MAX_ERRORS = 15;
 const MAX_URL = 7500;
@@ -269,7 +271,7 @@ const chatButton = () => {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'ui-control icon fa-solid fa-bug ctlib-bug-report-button';
-  btn.dataset.tooltip = L('button');
+  setTip(btn, tipFrom('CTLIB.tip.bugReport', { title: L('button') }));
   btn.setAttribute('aria-label', L('button'));
   btn.addEventListener('click', (event) => { event.preventDefault(); openBugReport(); });
   return btn;

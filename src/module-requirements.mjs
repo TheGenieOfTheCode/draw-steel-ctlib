@@ -1,4 +1,4 @@
-
+import { tipAttrs, tipFrom } from './rich-tips.mjs';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -35,7 +35,7 @@ export function requirementBadgeHTML(def) {
   if (!req) return '';
   const state = moduleState(req.id);
   const tip = game.i18n.format(`CTLIB.settings.requires.${state}`, { module: req.label });
-  return `<span class="ctlib-req-badge ctlib-req-${state}" data-tooltip="${esc(tip)}">`
+  return `<span class="ctlib-req-badge ctlib-req-${state}" ${tipAttrs(tipFrom('CTLIB.tip.requirement', { title: req.label, body: tip }))}>`
     + `<i class="fas ${ICONS[state]}" inert></i> ${esc(req.label)}</span>`;
 }
 

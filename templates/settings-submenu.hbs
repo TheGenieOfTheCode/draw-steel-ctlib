@@ -54,10 +54,10 @@
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields dsct-file-picker-group">
       <input type="text" id="dsct-sub-{{key}}" name="{{key}}" value="{{value}}" />
-      <button type="button" class="dsct-fp-btn" data-target="{{key}}" title="{{localize 'CTLIB.settings.browseFiles'}}">
+      <button type="button" class="dsct-fp-btn" data-target="{{key}}" {{richTip "CTLIB.tip.browseFiles"}}>
         <i class="fas fa-file-import"></i>
       </button>
-      <img class="dsct-icon-preview" src="{{value}}" title="{{localize 'CTLIB.settings.iconPreview'}}" />
+      <img class="dsct-icon-preview" src="{{value}}" {{richTip "CTLIB.tip.iconPreview"}} />
     </div>
     <p class="hint">{{hint}}</p>
   </div>

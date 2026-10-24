@@ -1,3 +1,5 @@
+import { setTip, tipAttrs, tipFrom } from './rich-tips.mjs';
+
 let _ov = null;
 
 const _holePad = () => Math.max(6, canvas.grid.size * 0.12);
@@ -101,7 +103,7 @@ export function beginPickerOverlay({ title, status = '', detail = '', tokens = [
     <span class="dsct-picker-title"></span>
     <span class="dsct-picker-status"></span>
     <span class="dsct-picker-btns">
-      <button type="button" class="dsct-picker-uitoggle${hideUi ? ' dsct-active' : ''}" ${uiToggle ? '' : 'hidden'} data-tooltip="${game.i18n.localize('CTLIB.picker.toggleUi')}"><i class="fa-solid fa-eye-slash"></i></button>
+      <button type="button" class="dsct-picker-uitoggle${hideUi ? ' dsct-active' : ''}" ${uiToggle ? '' : 'hidden'} ${tipAttrs(tipFrom('CTLIB.tip.toggleUi', { body: game.i18n.localize('CTLIB.picker.toggleUi') }))}><i class="fa-solid fa-eye-slash"></i></button>
       <button type="button" class="dsct-picker-confirm" ${showConfirm ? '' : 'hidden'}><i class="fa-solid fa-check"></i> ${confirmLabel} <kbd>Enter</kbd></button>
       <button type="button" class="dsct-picker-cancel" ${showCancel ? '' : 'hidden'}><i class="fa-solid fa-xmark"></i> ${cancelLabel} <kbd>Esc</kbd></button>
     </span>
@@ -120,7 +122,7 @@ export function beginPickerOverlay({ title, status = '', detail = '', tokens = [
     b.type = 'button';
     b.className = `dsct-picker-extra${eb.className ? ` ${eb.className}` : ''}`;
     b.innerHTML = `${eb.icon ? `<i class="${eb.icon}"></i> ` : ''}${foundry.utils.escapeHTML(eb.label ?? '')}${eb.kbd ? ` <kbd>${foundry.utils.escapeHTML(eb.kbd)}</kbd>` : ''}`;
-    if (eb.tooltip) b.dataset.tooltip = eb.tooltip;
+    if (eb.tooltip) setTip(b, { title: eb.label ?? '', category: eb.tipCategory ?? '', body: eb.tooltip });
     b.addEventListener('click', (ev) => { ev.preventDefault(); eb.onClick?.(); });
     btnsEl.insertBefore(b, btnsEl.querySelector('.dsct-picker-confirm'));
   }

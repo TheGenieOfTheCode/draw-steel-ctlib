@@ -129,6 +129,21 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   justify-self: center;
 }
 
+#tooltip.dsct-rich-tip {
+  width: min-content;
+  min-width: 260px;
+  max-width: min(560px, 90vw);
+}
+
+#tooltip.dsct-rich-tip header.metadata h3.name,
+#tooltip.dsct-rich-tip header.metadata aside.category h4 {
+  white-space: nowrap;
+}
+
+#tooltip .dsct-tip p {
+  margin: 0.25rem 0;
+}
+
 #tooltip.dsct-picker-help-tip {
   max-width: 380px;
   text-align: left;
