@@ -32,4 +32,4 @@ Hooks.once('init', () => {
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
 });
 
-Hooks.on('canvasReady', () => document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()));
+Hooks.on('canvasReady', () => { document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()); });
