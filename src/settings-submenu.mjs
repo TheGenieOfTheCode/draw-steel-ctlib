@@ -215,6 +215,8 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       if (def.type === Boolean) value = input.checked;
       else if (def.type === Number) value = Number(input.value);
       else value = input.value;
+      
+      if (value === before.get(k)) continue;
       await game.settings.set(id, k, value);
     }
 
