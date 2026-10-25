@@ -54,6 +54,13 @@ const PALETTE_DARK = {
   '--dsct-mimic-label':    '#a088c0',
   '--dsct-animal-label':   '#9a8cc4',
   '--dsct-close-fg':       '#8e80b8',
+  '--dsct-ok-fg':          '#8fdca0',
+  '--dsct-ok-ready-fg':    '#c8ffd6',
+  '--dsct-no-fg':          '#dc9a8f',
+  '--dsct-no-border':      '#7a3f3f',
+  '--dsct-suggest-fg':     '#f0d060',
+  '--dsct-suggest-hover':  '#ffe28a',
+  '--dsct-warn-fg':        '#ffaa44',
 };
 const PALETTE_LIGHT = {
   '--dsct-bg':           '#f0eef8',
@@ -75,6 +82,13 @@ const PALETTE_LIGHT = {
   '--dsct-mimic-label':    '#5a4070',
   '--dsct-animal-label':   '#6a5a8a',
   '--dsct-close-fg':       '#7060a8',
+  '--dsct-ok-fg':          '#1d6a33',
+  '--dsct-ok-ready-fg':    '#0d4f22',
+  '--dsct-no-fg':          '#9a2f22',
+  '--dsct-no-border':      '#b0574d',
+  '--dsct-suggest-fg':     '#6e5200',
+  '--dsct-suggest-hover':  '#4f3b00',
+  '--dsct-warn-fg':        '#a35400',
 };
 
 export const initPalette = () => {
