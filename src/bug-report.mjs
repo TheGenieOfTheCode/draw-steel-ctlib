@@ -271,7 +271,7 @@ const chatButton = () => {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'ui-control icon fa-solid fa-bug ctlib-bug-report-button';
-  setTip(btn, tipFrom('CTLIB.tip.bugReport', { title: L('button') }));
+  setTip(btn, tipFrom('CTLIB.tip.bugReport'));
   btn.setAttribute('aria-label', L('button'));
   btn.addEventListener('click', (event) => { event.preventDefault(); openBugReport(); });
   return btn;

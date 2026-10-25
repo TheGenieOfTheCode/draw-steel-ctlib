@@ -14,7 +14,7 @@
       "damageType": { "category": "Damage Type", "body": "Immunity and weakness to {type} change this damage." },
       "resource": { "category": "Resource" },
       "requirement": { "category": "Needs a Module" },
-      "bugReport": { "category": "CTLib", "body": "Report a bug in a Draw Steel module. It fills in your versions and settings, and points out known fixes as you type." },
+      "bugReport": { "title": "Report a Bug", "category": "CTLib", "body": "Report a bug in a Draw Steel module. It fills in your versions and settings, and points out known fixes as you type." },
       "toggleUi": { "title": "Interface", "category": "Picker" },
       "reload": { "title": "Reload", "category": "Setting" },
       "browseFiles": { "title": "Browse Files", "category": "Setting", "body": "Pick an image from your files." },
