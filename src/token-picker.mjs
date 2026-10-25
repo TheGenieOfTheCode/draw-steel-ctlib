@@ -74,8 +74,9 @@ const _brightenHex = (hex) => {
   return (r << 16) | (g << 8) | b;
 };
 
-export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint, title, arrowColor, autoPick = false, control = false }) {
+export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint, title, arrowColor, autoPick = false, control = false, preselect = null }) {
   if (!tokens.length) return null;
+  if (preselect && !tokens.includes(preselect)) preselect = null;
   if (autoPick && tokens.length === 1) {
     if (control) tokens[0].control();
     return tokens[0];
@@ -106,14 +107,22 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
     }
   };
 
-  drawHighlights();
+  const arrowFor = (t) => (arrowColor ? arrowColor(t) : _cssHexToNum(colorMap.get(t.id) ?? '#ffffff'));
+  drawHighlights(preselect?.id ?? null);
+  if (preselect) setPickerArrow(preselect, arrowFor(preselect));
 
   return new Promise(resolve => {
+    const pick = (token) => {
+      cleanup();
+      if (control) token.control();
+      resolve(token);
+    };
     const overlay = beginPickerOverlay({
       title: title ?? game.i18n.localize('CTLIB.picker.titleSource'),
       status: hint ?? '',
       tokens,
-      showConfirm: false,
+      showConfirm: !!preselect,
+      onConfirm: preselect ? () => pick(preselect) : null,
       onCancel: () => { cleanup(); resolve(null); },
       controls: [{ input: 'CTLIB.picker.help.click', action: 'CTLIB.picker.help.chooseToken' }],
       cancelOnRightClick: !!config.get('cancelOnRightClick'),
@@ -136,22 +145,22 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
       const hit    = hitToken(pos, tokens);
       const newId  = hit?.id ?? null;
       if (newId === hoverId) return;
-      if (hoverId) removePickerArrow(canvas.tokens.get(hoverId));
+      if (hoverId && hoverId !== preselect?.id) removePickerArrow(canvas.tokens.get(hoverId));
       hoverId = newId;
-      if (hit) setPickerArrow(hit, arrowColor ? arrowColor(hit) : _cssHexToNum(colorMap.get(hit.id) ?? '#ffffff'));
-      drawHighlights(hoverId);
+      if (hit) setPickerArrow(hit, arrowFor(hit));
+      drawHighlights(hoverId ?? preselect?.id ?? null);
     };
 
     const onClick = (event) => {
       if (event.data.originalEvent.button !== 0) return;
       const hit = hitToken(event.data.getLocalPosition(canvas.app.stage), tokens);
-      if (!hit) return;
-      cleanup();
-      if (control) hit.control();
-      resolve(hit);
+      if (hit) pick(hit);
     };
 
-    const onKey           = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cleanup(); resolve(null); } };
+    const onKey = (e) => {
+      if (e.key === 'Enter' && preselect) { e.preventDefault(); e.stopPropagation(); pick(preselect); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cleanup(); resolve(null); }
+    };
 
     canvas.stage.on('mousedown', onClick);
     canvas.stage.on('mousemove', onMove);
