@@ -18,7 +18,43 @@ export function hitToken(pos, candidates) {
   }) ?? null;
 }
 
-export function getValidTargets(casterToken, targetType, range, { excludeSelf = false, checkLOS = false, respectHidden = false, shift = null } = {}) {
+export function openingPath(casterToken, targetToken, range) {
+  const g = canvas.grid.size;
+  const reach = Number(range) > 0 ? Number(range) : 10;
+  const cellOf = (t) => ({ i: Math.round(t.document.y / g), j: Math.round(t.document.x / g) });
+  const start = cellOf(casterToken);
+  const goal = cellOf(targetToken);
+  const goals = new Set();
+  for (let di = 0; di < (targetToken.document.height || 1); di++)
+    for (let dj = 0; dj < (targetToken.document.width || 1); dj++) goals.add(`${goal.i + di},${goal.j + dj}`);
+  const center = (c) => ({ x: (c.j + 0.5) * g, y: (c.i + 0.5) * g });
+  const backend = CONFIG.Canvas.polygonBackends?.move;
+  const blocked = (a, b) => !!backend?.testCollision(center(a), center(b), { type: 'move', mode: 'any' });
+  const prev = new Map([[`${start.i},${start.j}`, null]]);
+  let frontier = [start];
+  for (let step = 0; step < reach && frontier.length; step++) {
+    const next = [];
+    for (const c of frontier) {
+      for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+        if (!di && !dj) continue;
+        const n = { i: c.i + di, j: c.j + dj };
+        const k = `${n.i},${n.j}`;
+        if (prev.has(k) || blocked(c, n)) continue;
+        prev.set(k, c);
+        if (goals.has(k)) {
+          const path = [n];
+          for (let p = c; p; p = prev.get(`${p.i},${p.j}`)) path.unshift(p);
+          return path;
+        }
+        next.push(n);
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+
+export function getValidTargets(casterToken, targetType, range, { excludeSelf = false, checkLOS = false, respectHidden = false, shift = null, opening = false } = {}) {
   const CGD      = canvas.grid.distance;
   const hasRange = range > 0 && !isNaN(range);
   const cDisp    = casterToken.document.disposition;
@@ -49,7 +85,7 @@ export function getValidTargets(casterToken, targetType, range, { excludeSelf = 
     if (!valid) return false;
 
     
-    if (checkLOS && !isSelf(t) && !_hasAnySightTo(casterToken, t, shift)) return false;
+    if (checkLOS && !isSelf(t) && !_hasAnySightTo(casterToken, t, shift) && !(opening && openingPath(casterToken, t, range))) return false;
     if (!isSelf(t) && burrowBlocksLineOfEffect(casterToken, t)) return false;
 
     

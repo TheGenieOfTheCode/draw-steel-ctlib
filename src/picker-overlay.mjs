@@ -1,4 +1,5 @@
 import { setTip, tipAttrs, tipFrom } from './rich-tips.mjs';
+import { reducedEffects } from './helpers.mjs';
 
 let _ov = null;
 
@@ -241,14 +242,17 @@ const _arrows  = new Map();
 const _targets = new Map();
 let _arrowC = null;
 let _arrowG = null;
+let _pathG = null;
 let _arrowTickerFn = null;
 let _arrowTime = 0;
 
 function _ensureArrowLayer() {
   if (_arrowC && !_arrowC.destroyed) return;
   _arrowC = new PIXI.Container();
+  _pathG = new PIXI.Graphics();
+  _pathG.blendMode = PIXI.BLEND_MODES.ADD;
   _arrowG = new PIXI.Graphics();
-  _arrowC.addChild(_arrowG);
+  _arrowC.addChild(_pathG, _arrowG);
   canvas.controls.addChild(_arrowC);
 }
 
@@ -335,6 +339,143 @@ function _arrowTick() {
     if (!e.token?.document || e.token.destroyed) continue;
     _drawArrowSet(_arrowG, e.token, e.color ?? _dispositionColor(e.token), Math.max(0, a) * (e.alphaMult ?? 1), m);
   }
+  _pathG?.clear();
+  const plain = reducedEffects();
+  const step = Math.min(1, canvas.app.ticker.elapsedMS / 180);
+  for (const [id, e] of _paths) {
+    if (plain || !_pathG) { _drawPath(_arrowG, e.points, e.color); continue; }
+    
+    const lit = e.lit || _arrows.has(id) || _targets.has(id) || (e.token && game.user.targets.has(e.token));
+    e.level += ((lit ? 1 : 0) - e.level) * step;
+    _drawFlow(_pathG, e, _arrowTime);
+  }
+}
+
+
+function _flowCurve(points) {
+  const GS = canvas.grid.size;
+  const at = (p) => ({ x: (p.j + 0.5) * GS, y: (p.i + 0.5) * GS });
+  const pts = points.map(at).filter((p, i, a) => {
+    if (i === 0 || i === a.length - 1) return true;
+    const b = a[i - 1], c = a[i + 1];
+    return Math.sign(p.x - b.x) !== Math.sign(c.x - p.x) || Math.sign(p.y - b.y) !== Math.sign(c.y - p.y);
+  });
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] ?? p2;
+    const steps = Math.max(2, Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y) / 6));
+    for (let k = 0; k < steps; k++) {
+      const t = k / steps, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (3 * b - a - 3 * c + d) * t3);
+      out.push({ x: f(p0.x, p1.x, p2.x, p3.x), y: f(p0.y, p1.y, p2.y, p3.y) });
+    }
+  }
+  out.push({ ...pts.at(-1) });
+  let len = 0;
+  out.forEach((p, i) => {
+    if (i) len += Math.hypot(p.x - out[i - 1].x, p.y - out[i - 1].y);
+    p.s = len;
+    const a = out[Math.max(0, i - 1)], b = out[Math.min(out.length - 1, i + 1)];
+    const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    p.nx = -(b.y - a.y) / d;
+    p.ny = (b.x - a.x) / d;
+  });
+  return { pts: out, len };
+}
+
+const _mixColor = (a, b, f) => {
+  const ch = (c, s) => (c >> s) & 0xff;
+  return [16, 8, 0].reduce((out, s) => out | (Math.round(ch(a, s) + (ch(b, s) - ch(a, s)) * f) << s), 0);
+};
+
+const _strand = (g, pts, offset) => {
+  pts.forEach((p, i) => {
+    const o = offset(p);
+    if (i) g.lineTo(p.x + p.nx * o, p.y + p.ny * o);
+    else g.moveTo(p.x + p.nx * o, p.y + p.ny * o);
+  });
+};
+
+
+function _drawFlow(g, e, time) {
+  const { pts, len } = e.curve;
+  if (pts.length < 2 || !len) return;
+  const ui = canvas.dimensions?.uiScale ?? 1;
+  const t = time / 1000 + e.seed;
+  const lv = e.level;
+  const light = _mixColor(e.color, 0xffffff, 0.5);
+  
+  const fadeIn = Math.min(45, len * 0.2), fadeOut = Math.min(30, len * 0.15);
+  const taper = (s) => Math.max(0, Math.min(1, s / fadeIn, (len - s) / fadeOut));
+  const drift = (p) => Math.sin(p.s * 0.035 - t * 0.9) * (1 + 2 * lv) * ui * taper(p.s);
+  
+  const colors = e.colors?.length ? e.colors : [e.color];
+  const twist = colors.length > 1 ? colors : [colors[0], colors[0]];
+  const strands = e.style === 'helix'
+    ? twist.map((c, k) => ({ color: _mixColor(c, 0xffffff, 0.35),
+      off: (p) => Math.sin(p.s * 0.06 - t * 1.6 + (k * 2 * Math.PI) / twist.length) * (4 + 3 * lv) * ui * taper(p.s) }))
+    : [{ color: light, off: drift }];
+  const along = e.style === 'helix' ? () => 0 : drift;
+
+  if (lv > 0.02) {
+    g.lineStyle({ width: 10 * ui, color: e.color, alpha: 0.08 * lv, cap: 'round', join: 'round' });
+    _strand(g, pts, () => 0);
+  }
+  for (const s of strands) {
+    g.lineStyle({ width: (1 + 0.4 * lv) * ui, color: s.color, alpha: 0.16 + 0.29 * lv, cap: 'round', join: 'round' });
+    _strand(g, pts, s.off);
+  }
+  if (lv < 0.05) return;
+
+  const spacing = 200, speed = 80, trail = 40;
+  const head = (t * speed) % spacing;
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i], q = pts[i - 1];
+    const behind = (((head - p.s) % spacing) + spacing) % spacing;
+    const glow = Math.exp(-behind / trail) * taper(p.s);
+    if (glow < 0.05) continue;
+    g.lineStyle({ width: (1.4 + 2 * glow) * ui, color: light, alpha: 0.4 * glow * lv, cap: 'round' });
+    g.moveTo(q.x + q.nx * along(q), q.y + q.ny * along(q));
+    g.lineTo(p.x + p.nx * along(p), p.y + p.ny * along(p));
+  }
+}
+
+
+function _drawPath(g, points, color) {
+  if (points.length < 2) return;
+  const GS = canvas.grid.size;
+  const lw = 3 * (canvas.dimensions?.uiScale ?? 1);
+  const at = (p) => ({ x: (p.j + 0.5) * GS, y: (p.i + 0.5) * GS });
+  const pts = points.map(at);
+  g.lineStyle(lw + 2, 0x000000, 0.55);
+  g.moveTo(pts[0].x, pts[0].y);
+  for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+  g.lineStyle(lw, color, 0.9);
+  g.moveTo(pts[0].x, pts[0].y);
+  for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+  const end = pts.at(-1), prev = pts.at(-2);
+  const len = Math.hypot(end.x - prev.x, end.y - prev.y) || 1;
+  const dx = (end.x - prev.x) / len, dy = (end.y - prev.y) / len, s = GS * 0.28;
+  g.lineStyle(1, 0x000000, 0.8);
+  g.beginFill(color, 0.95);
+  g.drawPolygon([end.x, end.y, end.x - dx * s - dy * s * 0.5, end.y - dy * s + dx * s * 0.5, end.x - dx * s + dy * s * 0.5, end.y - dy * s - dx * s * 0.5]);
+  g.endFill();
+  g.lineStyle(0);
+}
+
+const _paths = new Map();
+
+
+export function setPickerPath(token, points, color = 0xa060ff, { style = 'wisp', colors = null, key = null, lit = false } = {}) {
+  _ensureArrowLayer();
+  _paths.set(key ?? token.id, { token, points, color, style, colors, curve: _flowCurve(points), seed: Math.random() * 100, level: lit ? 1 : 0, lit });
+  _ensureArrowTicker();
+}
+
+
+export function lightPickerPath(token, lit) {
+  const e = token ? _paths.get(token.id) : null;
+  if (e) e.lit = !!lit;
 }
 
 export function setPickerArrow(token, color = null, alphaMult = 1) {
@@ -356,23 +497,25 @@ export function setPickerTarget(token, color = null, alphaMult = 1) {
 export function removePickerArrow(token) {
   if (!token) return;
   _arrows.delete(token.id);
-  if (_arrows.size + _targets.size === 0) clearPickerArrows();
+  if (_arrows.size + _targets.size + _paths.size === 0) clearPickerArrows();
 }
 
 export function removePickerTarget(token) {
   if (!token) return;
   _targets.delete(token.id);
-  if (_arrows.size + _targets.size === 0) clearPickerArrows();
+  if (_arrows.size + _targets.size + _paths.size === 0) clearPickerArrows();
 }
 
 export function clearPickerArrows() {
   _arrows.clear();
   _targets.clear();
+  _paths.clear();
   if (_arrowTickerFn) { canvas.app.ticker.remove(_arrowTickerFn); _arrowTickerFn = null; }
   if (_arrowC) {
     _arrowC.parent?.removeChild(_arrowC);
     _arrowC.destroy({ children: true });
     _arrowC = null;
     _arrowG = null;
+    _pathG = null;
   }
 }

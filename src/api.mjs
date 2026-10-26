@@ -9,7 +9,7 @@ export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mj
 export * from './dstd-panel.mjs';
 export { registerStatusGroup, groupStatuses } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';
-export { getValidTargets, runColoredTokenPicker, hitToken } from './token-picker.mjs';
+export { getValidTargets, openingPath, runColoredTokenPicker, hitToken } from './token-picker.mjs';
 export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';
 export { DAMAGE_TYPES, damageTypeLabel, damageTypeIconHTML } from './damage-types.mjs';
 export { RESOURCE_TOKENS, drawResourceToken, resourceTokenURI, resourceTokenHTML } from './resource-tokens.mjs';
