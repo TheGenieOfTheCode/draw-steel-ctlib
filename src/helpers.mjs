@@ -930,11 +930,11 @@ export const replayUndo = async (ops) => {
         case 'stamina':
           if (entry.wasDeadBefore) break;
           if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina: actorUuid=${entry.uuid} prevValue=${entry.prevValue} squadGroupUuid=${entry.squadGroupUuid} prevSquadHP=${entry.prevSquadHP} squadTokenIds=${JSON.stringify(entry.squadTokenIds)}`);
-          await safeUpdate(doc, { 'system.stamina.temporary': entry.prevTemp, 'system.stamina.value': entry.prevValue });
+          await safeUpdate(doc, { 'system.stamina.temporary': entry.prevTemp, 'system.stamina.value': entry.prevValue }, { dsblUndo: true });
           if (entry.squadGroupUuid && entry.prevSquadHP !== null) {
             const sg = await fromUuid(entry.squadGroupUuid);
             if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina squad: sg found=${!!sg} currentStaminaValue=${sg?.system?.staminaValue} prevSquadHP=${entry.prevSquadHP}`);
-            if (sg) await safeUpdate(sg, { 'system.staminaValue': entry.prevSquadHP });
+            if (sg) await safeUpdate(sg, { 'system.staminaValue': entry.prevSquadHP }, { dsblUndo: true });
           }
           break;
       }
@@ -998,9 +998,9 @@ export const safeToggleStatusEffect = async (actor, effectId, options = {}) => {
 };
 
 export const undoDamage = async (actor, { prevTemp, prevValue, prevSquadHP, squadGroup }) => {
-  await safeUpdate(actor, { 'system.stamina.temporary': prevTemp, 'system.stamina.value': prevValue });
+  await safeUpdate(actor, { 'system.stamina.temporary': prevTemp, 'system.stamina.value': prevValue }, { dsblUndo: true });
   if (squadGroup && prevSquadHP !== null) {
-    await safeUpdate(squadGroup, { 'system.staminaValue': prevSquadHP });
+    await safeUpdate(squadGroup, { 'system.staminaValue': prevSquadHP }, { dsblUndo: true });
   }
 };
 
