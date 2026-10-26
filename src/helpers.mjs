@@ -853,7 +853,7 @@ export const getMaterial = (obj) => {
 };
 
 export const tokenAt = (gx, gy, excludeId) => canvas.tokens.placeables.find(t => {
-  if (t.id === excludeId) return false;
+  if (t.id === excludeId || t.document.getFlag?.('draw-steel-ctlib', 'notObstacle')) return false;
   const tg   = toGrid(t.document);
   const size = t.actor?.system?.combat?.size?.value ?? t.document.width ?? 1;
   return gx >= tg.x && gx < tg.x + size && gy >= tg.y && gy < tg.y + size;
