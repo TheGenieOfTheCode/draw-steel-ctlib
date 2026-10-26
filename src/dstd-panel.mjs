@@ -66,11 +66,23 @@ const _ignored = (node) => !!_ignoreSelector && !!node.closest(_ignoreSelector);
 const MESSAGE_LI = 'li.chat-message[data-message-id]';
 const _pending = { targets: new Set(), added: new Set(), scheduled: false };
 
+const _decorateOnArrival = (node) => {
+  if (!node.matches?.(MESSAGE_LI) || node.dataset.ctlibDecorated || !node.querySelector(DSTD_PANEL)) return;
+  const message = game.messages.get(node.dataset.messageId);
+  if (!message) return;
+  node.dataset.ctlibDecorated = '1';
+  _run(message, node, 'render');
+};
+
 const _onMutations = (mutations) => {
   if (!dstdActive()) return;
   for (const mutation of mutations) {
     if (mutation.target instanceof HTMLElement) _pending.targets.add(mutation.target);
-    for (const node of mutation.addedNodes) if (node.nodeType === Node.ELEMENT_NODE) _pending.added.add(node);
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType !== Node.ELEMENT_NODE) continue;
+      _pending.added.add(node);
+      if (_decorators.length) _decorateOnArrival(node);
+    }
   }
   if (_pending.scheduled) return;
   _pending.scheduled = true;
@@ -130,7 +142,12 @@ const _start = () => {
       ? root
       : (root.ownerDocument.querySelector(`li.chat-message[data-message-id="${msgId}"]`) ?? root);
     for (const d of _decorators) if (d.onRender && d.immediate) _runOne(d, message, root, 'render');
-    setTimeout(() => _run(message, live(), 'render'), 0);
+    setTimeout(() => {
+      const el = live();
+      if (el.dataset.ctlibDecorated) return;
+      el.dataset.ctlibDecorated = '1';
+      _run(message, el, 'render');
+    }, 0);
     for (const d of _decorators) {
       if (!d.onRender) continue;
       for (const ms of d.retry) setTimeout(() => { const el = live(); if (el.isConnected) _runOne(d, message, el, 'render'); }, ms);
