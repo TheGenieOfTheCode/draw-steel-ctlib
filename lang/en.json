@@ -84,6 +84,14 @@
         "extra": "It fills in your versions and settings for you, and if what you describe is a known setting or an already fixed bug, it tells you as you type. You can hide the chat icon in CTLib's settings.",
         "open": "Open the Bug Report",
         "anyModule": "a Draw Steel module"
+      },
+      "blocked": {
+        "title": "Some Draw Steel modules can't turn on",
+        "cannot": "{module} {version} can't turn on:",
+        "old": "it needs {module} {min} or newer, and this world has {have}.",
+        "missing": "it needs the module {module}, which isn't installed.",
+        "fix": "Update or install these from Foundry's Setup screen (Add-on Modules, then Update All), then turn {modules} on in Manage Modules.",
+        "toast": "Can't turn on: {modules}. CTLib explains what's missing in chat."
       }
     },
     "bugReport": {
