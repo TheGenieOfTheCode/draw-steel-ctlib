@@ -303,7 +303,22 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   letter-spacing: 0.05em;
 }
 
+.ctlib-tab-chips {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  padding: 2px 0 8px;
+  border-bottom: 1px solid var(--ctlib-gold-line);
+  background: rgb(11, 10, 19);
+}
+
+.theme-light .ctlib-tab-chips {
+  background: url("/ui/parchment.jpg");
+}
+
 .dsct-sub-settings,
+.ctlib-tab-chips,
 .ctlib-tab-group {
   --ctlib-gold-text: light-dark(#553404, #d9a63f);
   --ctlib-gold-line: light-dark(rgba(85, 52, 4, 0.4), rgba(217, 166, 63, 0.45));

@@ -6,6 +6,52 @@ export function registerSettingsLayout(moduleId, groups, options = {}) {
   LAYOUTS.set(moduleId, { groups, options });
 }
 
+function addChips(root, section, groups) {
+  const nav = document.createElement('nav');
+  nav.className = 'dsct-sub-chips ctlib-tab-chips';
+  nav.setAttribute('aria-label', game.i18n.localize('CTLIB.settings.sections'));
+  const chips = groups.map((group) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = group.querySelector('.ctlib-tab-header')?.textContent ?? '';
+    nav.append(b);
+    return { b, group };
+  });
+  section.prepend(nav);
+  const pad = parseFloat(getComputedStyle(section).paddingTop) || 0;
+  nav.style.top = `-${pad}px`;
+  nav.style.paddingTop = `${pad + 2}px`;
+  nav.style.marginTop = `-${pad}px`;
+
+  let pinned = null;
+  const visible = (g) => getComputedStyle(g).display !== 'none';
+  const spy = () => {
+    let on = pinned;
+    if (!on) {
+      const top = section.getBoundingClientRect().top + nav.offsetHeight + 8;
+      for (const { group } of chips) if (visible(group) && group.getBoundingClientRect().top <= top) on = group;
+      on ??= chips.find(({ group }) => visible(group))?.group;
+    }
+    for (const { b, group } of chips) {
+      b.classList.toggle('dsct-sub-chip-on', group === on);
+      b.classList.toggle('dsct-sub-chip-empty', !visible(group));
+    }
+  };
+  for (const { b, group } of chips) {
+    b.addEventListener('click', () => {
+      pinned = group;
+      const offset = group.getBoundingClientRect().top - section.getBoundingClientRect().top;
+      section.scrollTo({ top: section.scrollTop + offset - nav.offsetHeight - 8, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      spy();
+    });
+  }
+  const unpin = () => { if (pinned) { pinned = null; spy(); } };
+  section.addEventListener('scroll', spy);
+  for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) section.addEventListener(type, unpin, { passive: true });
+  root.querySelector('input[type=search]')?.addEventListener('input', () => { pinned = null; setTimeout(spy, 300); });
+  spy();
+}
+
 const keyOf = (group, moduleId) => {
   const key = group.querySelector('button[data-key]')?.dataset.key ?? group.querySelector('[name]')?.getAttribute('name');
   return key?.replace(`${moduleId}.`, '') ?? null;
@@ -44,6 +90,7 @@ function applyLayout(root, moduleId, { groups, options }) {
     const anchor = section.querySelector(':scope > .form-group');
     if (anchor) anchor.before(...built, ...rest);
     else section.append(...built, ...rest);
+    if (built.length >= 4) addChips(root, section, built);
   }
 
   for (const [key, page] of Object.entries(wiki.pages ?? {})) addWikiLink(rows.get(key)?.querySelector(':scope > label'), url(page));
