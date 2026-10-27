@@ -314,6 +314,11 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   margin: 12px 0 -4px;
 }
 
+.form-group > .ctlib-search-hits {
+  flex: 0 0 100%;
+  margin-top: 2px;
+}
+
 .ctlib-tab-group:not(:has(> .form-group:not([hidden]))) {
   display: none;
 }

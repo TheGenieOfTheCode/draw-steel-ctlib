@@ -57,6 +57,7 @@
       "search": "Search this window",
       "sections": "Sections",
       "searchNone": "No settings here match that search.",
+      "searchInside": "Matching settings inside this window",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world.",
       "primaryDirector": {
