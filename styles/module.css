@@ -325,6 +325,32 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   margin-top: 2px;
 }
 
+.ctlib-wiki-link {
+  margin-left: 0.4em;
+  font-size: 0.85em;
+  color: var(--ctlib-gold-text, #d9a63f);
+  opacity: 0.75;
+  text-decoration: none;
+}
+
+.ctlib-wiki-link:hover,
+.ctlib-wiki-link:focus-visible {
+  opacity: 1;
+  text-shadow: 0 0 6px var(--ctlib-gold-line, rgba(217, 166, 63, 0.45));
+}
+
+.form-group.ctlib-tab-sub {
+  margin-left: 1.5em;
+}
+
+.form-group.ctlib-tab-sub > .hint {
+  padding-right: 1.5em;
+}
+
+.form-group.ctlib-tab-off > * {
+  opacity: 0.4;
+}
+
 .ctlib-tab-group:not(:has(> .form-group:not([hidden]))) {
   display: none;
 }

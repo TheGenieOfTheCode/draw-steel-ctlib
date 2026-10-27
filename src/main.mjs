@@ -32,6 +32,12 @@ Hooks.once('init', () => {
   registerRichTips();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
+  ctlib.registerSettingsLayout(MODULE_ID, [], {
+    wiki: {
+      base: 'https://github.com/TheGenieOfTheCode/draw-steel-ctlib/wiki/',
+      pages: { bugReportChatButton: 'Bug-Reports', primaryDirector: 'Permission-Safe-Writes#the-primary-director' },
+    },
+  });
 });
 
 Hooks.on('canvasReady', () => { document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()); });

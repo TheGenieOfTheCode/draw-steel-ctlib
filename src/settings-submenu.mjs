@@ -1,4 +1,5 @@
 import { markRequirement } from './module-requirements.mjs';
+import { addWikiLink, wikiUrl } from './wiki-links.mjs';
 
 const debugOn = (id) => !!id && game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
 
@@ -58,6 +59,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
   static get dependencies() { return {}; }
   static get requires()     { return {}; }
   static get intro()        { return null; }
+  static get wiki()         { return null; }
 
   async _prepareContext(_options) {
     const debugMode    = debugOn(this.constructor.moduleId);
@@ -242,6 +244,13 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       const def = game.settings.settings.get(`${id}.${input.name}`);
       if (def?.requiresModule) markRequirement(input.closest('.form-group'), null, def);
     });
+
+    const wiki = this.constructor.wiki;
+    for (const [key, page] of Object.entries(wiki?.pages ?? {})) {
+      const header = [...el.querySelectorAll('.dsct-sub-scroll > :is(h3, h4)')].find(h => h.textContent.trim() === key);
+      const row = (el.querySelector(`.dsct-sub-scroll [name="${CSS.escape(key)}"]`) ?? el.querySelector(`#${CSS.escape(key)}`))?.closest('.form-group');
+      addWikiLink(header ?? row?.querySelector(':scope > label'), wikiUrl(wiki.base, page));
+    }
 
     this._wireSearchAndChips(el);
     if (this.options.focusKey) this.focusSetting(this.options.focusKey);

@@ -18,6 +18,7 @@
       "toggleUi": { "title": "Interface", "category": "Picker" },
       "reload": { "title": "Reload", "category": "Setting" },
       "browseFiles": { "title": "Browse Files", "category": "Setting", "body": "Pick an image from your files." },
+      "wiki": { "title": "Read More", "category": "Wiki", "body": "Opens the {page} page of the wiki, which covers this in more detail." },
       "iconPreview": { "title": "Current Icon", "category": "Setting", "body": "The image this setting uses now." }
     },
     "picker": {
@@ -58,6 +59,7 @@
       "sections": "Sections",
       "searchNone": "No settings here match that search.",
       "searchInside": "Matching settings inside this window",
+      "wikiLink": "Open the {page} page of the wiki",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world.",
       "primaryDirector": {

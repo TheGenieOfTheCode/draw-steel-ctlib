@@ -6,6 +6,7 @@ export { TIP_CLASS, richTip, tipFrom, setTip, tipAttrs, pillTip, richifyTooltips
 export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
 export { registerSettingsLayout } from './settings-layout.mjs';
+export { wikiUrl, wikiLink, addWikiLink } from './wiki-links.mjs';
 import './settings-search.mjs';
 export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 export * from './dstd-panel.mjs';
