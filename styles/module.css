@@ -426,8 +426,13 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   flex: 0 1 auto;
 }
 
-.form-group.dsct-sub-disabled {
+.form-group.dsct-sub-disabled > :not(.dsct-sub-note) {
   opacity: 0.4;
+}
+
+.dsct-sub-settings .form-group > .dsct-sub-note {
+  color: var(--ctlib-gold-text);
+  font-weight: 600;
 }
 
 .dsct-sub-settings .form-group {
