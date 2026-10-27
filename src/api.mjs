@@ -5,6 +5,7 @@ export * from './picker-overlay.mjs';
 export { TIP_CLASS, richTip, tipFrom, setTip, tipAttrs, pillTip, richifyTooltips, textTip } from './rich-tips.mjs';
 export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
+export { registerSettingsLayout } from './settings-layout.mjs';
 export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 export * from './dstd-panel.mjs';
 export { registerStatusGroup, groupStatuses } from './status-palette.mjs';

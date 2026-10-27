@@ -1,13 +1,24 @@
 <div class="dsct-wbs-content dsct-sub-settings">
 
+  <div class="dsct-sub-top">
+    <search>
+      <input type="search" class="dsct-sub-search" placeholder="&#xf002;" aria-label="{{localize "CTLIB.settings.search"}}" autocomplete="off" spellcheck="false">
+    </search>
+    {{#if chips.length}}
+    <nav class="dsct-sub-chips" aria-label="{{localize "CTLIB.settings.sections"}}">
+      {{#each chips}}<button type="button" data-sec="{{index}}">{{label}}</button>{{/each}}
+    </nav>
+    {{/if}}
+  </div>
+
   <div class="dsct-sub-scroll">
   {{#each items}}
   {{#if isDebugHeader}}
-  <h3 class="dsct-sub-debug-header">{{localize "CTLIB.settings.debugHeader"}}</h3>
+  <h3 class="dsct-sub-debug-header" data-sec="{{secIndex}}">{{localize "CTLIB.settings.debugHeader"}}</h3>
   {{else if isSectionHeader}}
-  <h4 class="dsct-sub-section-header">{{label}}</h4>
+  <h4 class="dsct-sub-section-header" data-sec="{{secIndex}}">{{label}}</h4>
   {{else if isNestedMenu}}
-  <div class="form-group">
+  <div class="form-group{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label>{{name}}</label>
     <div class="form-fields">
       <button type="button" id="{{id}}" class="dsct-sub-menu-btn"><i class="{{icon}}"></i> {{label}}</button>
@@ -15,7 +26,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else if isInfo}}
-  <div class="form-group dsct-sub-info-entry">
+  <div class="form-group dsct-sub-info-entry" data-sec="{{sec}}">
     <label>{{name}}</label>
     <div class="form-fields">
       {{#if isActive}}<span class="dsct-compat-badge dsct-compat-active"><i class="fas fa-check"></i> {{localize "CTLIB.settings.active"}}</span>{{else}}<span class="dsct-compat-badge dsct-compat-inactive">{{localize "CTLIB.settings.notDetected"}}</span>{{/if}}
@@ -23,7 +34,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else if isBoolean}}
-  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}">
+  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields">
       <input type="checkbox" id="dsct-sub-{{key}}" name="{{key}}" {{#if value}}checked{{/if}}>
@@ -31,7 +42,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else if isSelect}}
-  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}">
+  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields">
       <select id="dsct-sub-{{key}}" name="{{key}}">
@@ -41,7 +52,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else if isRange}}
-  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}">
+  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields">
       <input type="range" id="dsct-sub-{{key}}" name="{{key}}" value="{{value}}" min="{{range.min}}" max="{{range.max}}" step="{{range.step}}">
@@ -50,7 +61,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else if isFilePicker}}
-  <div class="form-group">
+  <div class="form-group{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields dsct-file-picker-group">
       <input type="text" id="dsct-sub-{{key}}" name="{{key}}" value="{{value}}" />
@@ -62,7 +73,7 @@
     <p class="hint">{{hint}}</p>
   </div>
   {{else}}
-  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}">
+  <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
     <div class="form-fields">
       <input type="number" id="dsct-sub-{{key}}" name="{{key}}" value="{{value}}">
@@ -71,6 +82,7 @@
   </div>
   {{/if}}
   {{/each}}
+  <p class="dsct-sub-nomatch hint" hidden>{{localize "CTLIB.settings.searchNone"}}</p>
   </div>
 
   <div class="dsct-wbs-footer">

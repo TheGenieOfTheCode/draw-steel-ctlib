@@ -54,6 +54,9 @@
       "browseFiles": "Browse Files",
       "iconPreview": "Current icon preview",
       "save": "Save Changes",
+      "search": "Search this window",
+      "sections": "Sections",
+      "searchNone": "No settings here match that search.",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world.",
       "primaryDirector": {

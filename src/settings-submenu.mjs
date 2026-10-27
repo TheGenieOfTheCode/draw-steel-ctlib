@@ -26,13 +26,25 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
   async _prepareContext(_options) {
     const debugMode    = debugOn(this.constructor.moduleId);
     const debugEntries = debugMode ? this.constructor.debugKeys.map(k => this._buildEntry(k)).filter(Boolean) : [];
-    return {
-      items: [
-        ...this._regularItems(),
-        ...(debugEntries.length ? [{ isDebugHeader: true }] : []),
-        ...debugEntries,
-      ],
-    };
+    const items = [
+      ...this._regularItems(),
+      ...(debugEntries.length ? [{ isDebugHeader: true }] : []),
+      ...debugEntries,
+    ].map(i => ({ ...i }));
+    
+    const deps = this.constructor.dependencies ?? {};
+    const chips = [];
+    let sec = -1;
+    for (const item of items) {
+      if (item.isSectionHeader || item.isDebugHeader) {
+        item.secIndex = ++sec;
+        if (item.isSectionHeader) chips.push({ index: sec, label: item.label });
+        continue;
+      }
+      item.sec = sec;
+      item.isSub = !!(item.key && deps[item.key]);
+    }
+    return { items, chips: chips.length >= 4 ? chips : [] };
   }
 
   _regularItems() {
@@ -112,15 +124,22 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
     const deps = this.constructor.dependencies ?? {};
     if (Object.keys(deps).length) {
       const masterOn = () => !enableKey || (el.querySelector(`[name="${enableKey}"]`)?.checked ?? true);
+      
+      const offOf = (key, seen = new Set()) => {
+        const spec = deps[key];
+        if (!spec || seen.has(key)) return false;
+        seen.add(key);
+        const invert = spec.startsWith('!');
+        const parent = invert ? spec.slice(1) : spec;
+        const parentInput = el.querySelector(`[name="${parent}"]`);
+        if (!parentInput) return false;
+        return (invert ? parentInput.checked : !parentInput.checked) || offOf(parent, seen);
+      };
       const syncDeps = () => {
-        for (const [child, spec] of Object.entries(deps)) {
-          
-          const invert = spec.startsWith('!');
-          const parent = invert ? spec.slice(1) : spec;
-          const parentInput = el.querySelector(`[name="${parent}"]`);
+        for (const child of Object.keys(deps)) {
           const group = el.querySelector(`[name="${child}"]`)?.closest('.form-group');
-          if (!parentInput || !group) continue;
-          const off = (invert ? parentInput.checked : !parentInput.checked) || !masterOn();
+          if (!group) continue;
+          const off = offOf(child) || !masterOn();
           group.classList.toggle('dsct-sub-disabled', off);
           group.querySelectorAll('input, select').forEach(i => { i.disabled = off; });
         }
@@ -182,9 +201,83 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       if (def?.requiresModule) markRequirement(input.closest('.form-group'), null, def);
     });
 
+    this._wireSearchAndChips(el);
+    if (this.options.focusKey) this.focusSetting(this.options.focusKey);
+
     el.querySelector('#dsct-sub-save-btn')?.addEventListener('click', async () => {
       await this._doSave();
       this.close();
+    });
+  }
+
+  _wireSearchAndChips(el) {
+    const scroller = el.querySelector('.dsct-sub-scroll');
+    const chips = [...el.querySelectorAll('.dsct-sub-chips button')];
+    const headers = () => [...el.querySelectorAll('.dsct-sub-scroll > [data-sec]:is(h3, h4)')];
+    const chipFor = (sec) => chips.find(b => b.dataset.sec === String(sec));
+    const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    
+    
+    let pinned = null;
+    const top = el.querySelector('.dsct-sub-top');
+    const spy = () => {
+      top?.classList.toggle('dsct-sub-scrolled', scroller.scrollTop > 0);
+      if (!chips.length) return;
+      let on = pinned;
+      if (on === null) for (const h of headers()) if (!h.hidden && h.offsetTop - scroller.offsetTop <= scroller.scrollTop + 8) on = h.dataset.sec;
+      on ??= headers().find(h => !h.hidden)?.dataset.sec;
+      for (const b of chips) b.classList.toggle('dsct-sub-chip-on', b.dataset.sec === on);
+    };
+    const unpin = () => { if (pinned === null) return; pinned = null; spy(); };
+    for (const b of chips) {
+      b.addEventListener('click', () => {
+        const h = el.querySelector(`.dsct-sub-scroll > [data-sec="${b.dataset.sec}"]:is(h3, h4)`);
+        if (!h) return;
+        pinned = b.dataset.sec;
+        scroller.scrollTo({ top: h.offsetTop - scroller.offsetTop - 4, behavior: reduced() ? 'auto' : 'smooth' });
+        spy();
+      });
+    }
+    scroller?.addEventListener('scroll', spy);
+    for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) scroller?.addEventListener(type, unpin, { passive: true });
+
+    const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    const groups = [...el.querySelectorAll('.dsct-sub-scroll > .form-group')];
+    for (const g of groups) g.dataset.search = norm(`${g.querySelector('label')?.textContent} ${g.querySelector('.hint')?.textContent}`);
+    const noMatch = el.querySelector('.dsct-sub-nomatch');
+    el.querySelector('.dsct-sub-search')?.addEventListener('input', (event) => {
+      const words = norm(event.target.value).split(/\s+/).filter(Boolean);
+      const seen = new Set();
+      for (const g of groups) {
+        const hit = words.every(w => g.dataset.search.includes(w));
+        g.hidden = !hit;
+        if (hit) seen.add(g.dataset.sec);
+      }
+      for (const h of headers()) {
+        const any = seen.has(h.dataset.sec);
+        h.hidden = !!words.length && !any;
+        chipFor(h.dataset.sec)?.classList.toggle('dsct-sub-chip-empty', !!words.length && !any);
+      }
+      if (noMatch) noMatch.hidden = !words.length || seen.size > 0;
+      pinned = null;
+      spy();
+      this.setPosition({ height: 'auto' });
+    });
+    spy();
+  }
+
+  
+  focusSetting(key) {
+    const bare = String(key).replace(`${this.constructor.moduleId}.`, '');
+    const group = this.element?.querySelector(`[name="${CSS.escape(bare)}"]`)?.closest('.form-group');
+    const scroller = this.element?.querySelector('.dsct-sub-scroll');
+    if (!group || !scroller) return;
+    requestAnimationFrame(() => {
+      scroller.scrollTop = group.offsetTop - scroller.offsetTop - 12;
+      group.classList.remove('dsct-sub-flash');
+      void group.offsetWidth;
+      group.classList.add('dsct-sub-flash');
     });
   }
 
