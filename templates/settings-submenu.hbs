@@ -72,6 +72,14 @@
     </div>
     <p class="hint">{{hint}}</p>
   </div>
+  {{else if isText}}
+  <div class="form-group{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
+    <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>
+    <div class="form-fields">
+      <input type="text" id="dsct-sub-{{key}}" name="{{key}}" value="{{value}}">
+    </div>
+    <p class="hint">{{hint}}</p>
+  </div>
   {{else}}
   <div class="form-group{{#if isEnableToggle}} dsct-sub-enable-toggle{{/if}}{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
     <label for="dsct-sub-{{key}}">{{name}}{{> dsctReloadBadge}}</label>

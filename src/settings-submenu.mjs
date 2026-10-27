@@ -83,6 +83,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       isSelect:       !!def.choices,
       isRange:        !!def.range,
       isNumber:       def.type === Number && !def.range,
+      isText:         def.type === String && !def.choices,
       isEnableToggle: key === this.constructor.enableKey,
       value,
       choices:   def.choices
