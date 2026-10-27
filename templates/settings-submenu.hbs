@@ -12,13 +12,14 @@
   </div>
 
   <div class="dsct-sub-scroll">
+  {{#if intro}}<p class="hint dsct-sub-intro">{{intro}}</p>{{/if}}
   {{#each items}}
   {{#if isDebugHeader}}
   <h3 class="dsct-sub-debug-header" data-sec="{{secIndex}}">{{localize "CTLIB.settings.debugHeader"}}</h3>
   {{else if isSectionHeader}}
   <h4 class="dsct-sub-section-header" data-sec="{{secIndex}}">{{label}}</h4>
   {{else if isNestedMenu}}
-  <div class="form-group{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}">
+  <div class="form-group{{#if isSub}} dsct-sub-setting{{/if}}" data-sec="{{sec}}"{{#if free}} data-free{{/if}}>
     <label>{{name}}</label>
     <div class="form-fields">
       <button type="button" id="{{id}}" class="dsct-sub-menu-btn"><i class="{{icon}}"></i> {{label}}</button>

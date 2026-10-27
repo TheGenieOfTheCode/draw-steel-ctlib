@@ -22,6 +22,8 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
   static get debugKeys()   { return []; }
   static get enableKey()   { return null; }
   static get dependencies() { return {}; }
+  static get requires()     { return {}; }
+  static get intro()        { return null; }
 
   async _prepareContext(_options) {
     const debugMode    = debugOn(this.constructor.moduleId);
@@ -42,9 +44,10 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
         continue;
       }
       item.sec = sec;
-      item.isSub = !!(item.key && deps[item.key]);
+      item.isSub = !!deps[item.key ?? item.id];
     }
-    return { items, chips: chips.length >= 4 ? chips : [] };
+    this._nestedMenus = items.filter(i => i.isNestedMenu && i.opens);
+    return { items, chips: chips.length >= 4 ? chips : [], intro: this.constructor.intro };
   }
 
   _regularItems() {
@@ -52,7 +55,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
     const result = [];
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i];
-      if (!e) continue;
+      if (!e || (e.gmOnly && !game.user.isGM)) continue;
       if (e.isSectionHeader) {
         let hasContent = false;
         for (let j = i + 1; j < entries.length; j++) {
@@ -102,54 +105,59 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       if (display) input.addEventListener('input', () => { display.textContent = input.value; });
     });
 
+    const id = this.constructor.moduleId;
+    const setGroup = (grp, off) => {
+      grp.classList.toggle('dsct-sub-disabled', off);
+      grp.querySelectorAll('input, select, button').forEach(i => { i.disabled = off; });
+    };
+    
+    const isOn = (key) => {
+      const input = el.querySelector(`[name="${key}"]`);
+      if (input) return input.checked;
+      return game.settings.settings.has(`${id}.${key}`) ? !!game.settings.get(id, key) : true;
+    };
+
     const enableKey = this.constructor.enableKey;
+    const enableInput = enableKey ? el.querySelector(`[name="${enableKey}"]`) : null;
+    const masterOn = () => !enableKey || isOn(enableKey);
     if (enableKey) {
-      const enableInput = el.querySelector(`[name="${enableKey}"]`);
-      if (enableInput) {
-        const syncDisabled = () => {
-          const on = enableInput.checked;
-          el.querySelectorAll('.form-group').forEach(grp => {
-            const first = grp.querySelector('input, select');
-            if (!first || first === enableInput) return;
-            grp.classList.toggle('dsct-sub-disabled', !on);
-            grp.querySelectorAll('input, select').forEach(i => { i.disabled = !on; });
-          });
-        };
-        enableInput.addEventListener('change', syncDisabled);
-        syncDisabled();
-      }
+      const syncDisabled = () => {
+        const on = masterOn();
+        el.querySelectorAll('.dsct-sub-scroll > .form-group').forEach(grp => {
+          if (grp.hasAttribute('data-free') || !grp.querySelector('input, select, button') || (enableInput && grp.contains(enableInput))) return;
+          setGroup(grp, !on);
+        });
+      };
+      enableInput?.addEventListener('change', syncDisabled);
+      syncDisabled();
     }
 
-    
-    
-    const deps = this.constructor.dependencies ?? {};
+    const deps = { ...this.constructor.requires, ...this.constructor.dependencies };
     if (Object.keys(deps).length) {
-      const masterOn = () => !enableKey || (el.querySelector(`[name="${enableKey}"]`)?.checked ?? true);
-      
       const offOf = (key, seen = new Set()) => {
         const spec = deps[key];
         if (!spec || seen.has(key)) return false;
         seen.add(key);
         const invert = spec.startsWith('!');
         const parent = invert ? spec.slice(1) : spec;
-        const parentInput = el.querySelector(`[name="${parent}"]`);
-        if (!parentInput) return false;
-        return (invert ? parentInput.checked : !parentInput.checked) || offOf(parent, seen);
+        return (invert ? isOn(parent) : !isOn(parent)) || offOf(parent, seen);
       };
+      const groupOf = (key) => (el.querySelector(`[name="${key}"]`) ?? el.querySelector(`#${CSS.escape(key)}`))?.closest('.form-group');
       const syncDeps = () => {
         for (const child of Object.keys(deps)) {
-          const group = el.querySelector(`[name="${child}"]`)?.closest('.form-group');
-          if (!group) continue;
-          const off = offOf(child) || !masterOn();
-          group.classList.toggle('dsct-sub-disabled', off);
-          group.querySelectorAll('input, select').forEach(i => { i.disabled = off; });
+          const group = groupOf(child);
+          if (group) setGroup(group, offOf(child) || !masterOn());
         }
       };
       for (const parent of new Set(Object.values(deps).map(v => v.replace(/^!/, '')))) {
         el.querySelector(`[name="${parent}"]`)?.addEventListener('change', syncDeps);
       }
-      if (enableKey) el.querySelector(`[name="${enableKey}"]`)?.addEventListener('change', syncDeps);
+      enableInput?.addEventListener('change', syncDeps);
       syncDeps();
+    }
+
+    for (const item of this._nestedMenus ?? []) {
+      el.querySelector(`#${CSS.escape(item.id)}`)?.addEventListener('click', () => new item.opens().render(true));
     }
 
     el.querySelectorAll('.dsct-fp-btn').forEach(btn => {
@@ -196,7 +204,6 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       sync();
     });
 
-    const id = this.constructor.moduleId;
     el.querySelectorAll('.form-group [name]').forEach((input) => {
       const def = game.settings.settings.get(`${id}.${input.name}`);
       if (def?.requiresModule) markRequirement(input.closest('.form-group'), null, def);

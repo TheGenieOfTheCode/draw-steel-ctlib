@@ -2,15 +2,20 @@ import { settingsSubmenu } from './settings-submenu.mjs';
 
 const debugOn = (id) => game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
 
-function innerSettings(type) {
+function innerSettings(type, seen = new Set()) {
   const id = type.moduleId;
-  if (!id) return [];
+  if (!id || seen.has(type)) return [];
+  seen.add(type);
+  const Submenu = settingsSubmenu();
   const keys = [...type.regularKeys, ...(debugOn(id) ? type.debugKeys : [])];
-  return keys.filter((k) => typeof k === 'string').map((key) => {
-    const def = game.settings.settings.get(`${id}.${key}`);
-    if (!def || (!game.user.isGM && def.scope === 'world')) return null;
-    return { key, name: game.i18n.localize(def.name) };
-  }).filter((s) => s?.name);
+  return keys.flatMap((k) => {
+    if (k?.opens?.prototype instanceof Submenu && !(k.gmOnly && !game.user.isGM)) return innerSettings(k.opens, seen);
+    if (typeof k !== 'string') return [];
+    const def = game.settings.settings.get(`${id}.${k}`);
+    if (!def || (!game.user.isGM && def.scope === 'world')) return [];
+    const name = game.i18n.localize(def.name);
+    return name ? [{ key: k, name, type }] : [];
+  });
 }
 
 const clean = (q) => foundry.applications.ux.SearchFilter.cleanQuery(q ?? '');
@@ -41,7 +46,7 @@ Hooks.on('renderSettingsConfig', (_app, html) => {
     hits.setAttribute('aria-label', game.i18n.localize('CTLIB.settings.searchInside'));
     hits.hidden = true;
     group.append(inside, hits);
-    rows.push({ menu, settings, hits });
+    rows.push({ settings, hits });
   }
   if (!rows.length) return;
 
@@ -49,13 +54,13 @@ Hooks.on('renderSettingsConfig', (_app, html) => {
   const update = () => {
     const query = clean(input?.value);
     const rgx = new RegExp(RegExp.escape(query), 'i');
-    for (const { menu, settings, hits } of rows) {
+    for (const { settings, hits } of rows) {
       const found = query ? settings.filter((s) => rgx.test(clean(s.name))) : [];
       hits.replaceChildren(...found.map((s) => {
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = s.name;
-        b.addEventListener('click', () => new menu.type({ focusKey: s.key }).render(true));
+        b.addEventListener('click', () => new s.type({ focusKey: s.key }).render(true));
         return b;
       }));
       hits.hidden = !found.length;
