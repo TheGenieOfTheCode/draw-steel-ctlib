@@ -2,6 +2,40 @@ import { markRequirement } from './module-requirements.mjs';
 
 const debugOn = (id) => !!id && game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
 
+export function innerSettings(type, seen = new Set()) {
+  const id = type.moduleId;
+  if (!id || seen.has(type)) return [];
+  seen.add(type);
+  const keys = [...type.regularKeys, ...(debugOn(id) ? type.debugKeys : [])];
+  return keys.flatMap((k) => {
+    if (k?.opens?.prototype instanceof settingsSubmenu() && !(k.gmOnly && !game.user.isGM)) return innerSettings(k.opens, seen);
+    if (typeof k !== 'string') return [];
+    const def = game.settings.settings.get(`${id}.${k}`);
+    if (!def || (!game.user.isGM && def.scope === 'world')) return [];
+    const name = game.i18n.localize(def.name);
+    return name ? [{ key: k, name, type }] : [];
+  });
+}
+
+export function searchHitChips(nav, found) {
+  nav.replaceChildren(...found.map((s) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = s.name;
+    b.addEventListener('click', () => new s.type({ focusKey: s.key }).render(true));
+    return b;
+  }));
+  nav.hidden = !found.length;
+}
+
+export function searchHitNav() {
+  const nav = document.createElement('nav');
+  nav.className = 'dsct-sub-chips ctlib-search-hits';
+  nav.setAttribute('aria-label', game.i18n.localize('CTLIB.settings.searchInside'));
+  nav.hidden = true;
+  return nav;
+}
+
 let _class = null;
 export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds.applications.api.DSApplication {
   static DEFAULT_OPTIONS = {
@@ -220,7 +254,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
 
   _wireSearchAndChips(el) {
     const scroller = el.querySelector('.dsct-sub-scroll');
-    const chips = [...el.querySelectorAll('.dsct-sub-chips button')];
+    const chips = [...el.querySelectorAll('.dsct-sub-top .dsct-sub-chips button')];
     const headers = () => [...el.querySelectorAll('.dsct-sub-scroll > [data-sec]:is(h3, h4)')];
     const chipFor = (sec) => chips.find(b => b.dataset.sec === String(sec));
     const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -253,12 +287,25 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
     const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
     const groups = [...el.querySelectorAll('.dsct-sub-scroll > .form-group')];
     for (const g of groups) g.dataset.search = norm(`${g.querySelector('label')?.textContent} ${g.querySelector('.hint')?.textContent}`);
+    const inside = new Map();
+    for (const item of this._nestedMenus ?? []) {
+      if (!(item.opens.prototype instanceof settingsSubmenu())) continue;
+      const g = el.querySelector(`#${CSS.escape(item.id)}`)?.closest('.form-group');
+      const settings = innerSettings(item.opens).map(s => ({ ...s, search: norm(s.name) }));
+      if (!g || !settings.length) continue;
+      const nav = searchHitNav();
+      g.append(nav);
+      inside.set(g, { settings, nav });
+    }
     const noMatch = el.querySelector('.dsct-sub-nomatch');
     el.querySelector('.dsct-sub-search')?.addEventListener('input', (event) => {
       const words = norm(event.target.value).split(/\s+/).filter(Boolean);
       const seen = new Set();
       for (const g of groups) {
-        const hit = words.every(w => g.dataset.search.includes(w));
+        const nested = inside.get(g);
+        const found = words.length && nested ? nested.settings.filter(s => words.every(w => s.search.includes(w))) : [];
+        if (nested) searchHitChips(nested.nav, found);
+        const hit = words.every(w => g.dataset.search.includes(w)) || found.length > 0;
         g.hidden = !hit;
         if (hit) seen.add(g.dataset.sec);
       }
