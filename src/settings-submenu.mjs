@@ -39,7 +39,7 @@ export function searchHitNav() {
 let _class = null;
 export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds.applications.api.DSApplication {
   static DEFAULT_OPTIONS = {
-    classes:  ['draw-steel'],
+    classes:  ['draw-steel', 'ctlib-scroll-window'],
     window:   { minimizable: false, resizable: true },
     position: { width: 640, height: 'auto' },
   };

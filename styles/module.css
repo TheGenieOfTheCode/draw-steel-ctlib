@@ -262,16 +262,22 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   padding: 14px;
 }
 
+.ctlib-scroll-window > .window-content {
+  overflow-y: auto;
+}
+
 .dsct-wbs-content.dsct-sub-settings {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: calc(80vh - 60px);
 }
 
 .dsct-sub-scroll {
   overflow-y: auto;
   flex: 1;
-  min-height: 0;
+  min-height: 6em;
 }
 
 .dsct-wbs-footer {
