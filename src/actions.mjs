@@ -29,11 +29,18 @@ export function combatantOf(target) {
   if (!target) return null;
   if (target.documentName === 'Combatant') return target;
   const doc = target.document ?? target;
-  if (doc.documentName === 'Token') return doc.combatant ?? null;
+  if (doc.documentName === 'Token') return doc.combatant ?? game.combats.find((c) => c.started)?.combatants.find((x) => x.tokenId === doc.id && x.sceneId === doc.parent?.id) ?? game.combats.map((c) => c.combatants.find((x) => x.tokenId === doc.id && x.sceneId === doc.parent?.id)).find(Boolean) ?? null;
   const actor = doc.documentName === 'Actor' ? doc : doc.actor;
   if (!actor) return null;
   const find = (c) => c?.combatants.find((x) => x.actor === actor || (!actor.isToken && x.actorId === actor.id)) ?? null;
   return find(game.combat) ?? game.combats.map(find).find(Boolean) ?? null;
+}
+
+export function isActing(combatant) {
+  const combat = combatant?.parent;
+  const current = combat?.started ? combat.combatant : null;
+  if (!current) return false;
+  return current.id === combatant.id || (!!combatant.group && combatant.group === current.group);
 }
 
 const trackerEffect = (actor) => {
@@ -56,7 +63,7 @@ export function get(target) {
   const effect = trackerEffect(combatant.actor);
   if (effect) state.triggered = !!effect.disabled;
   state.mainFree = state.main === null;
-  state.onTurn = !!combat?.started && combat.combatant?.id === combatant.id;
+  state.onTurn = isActing(combatant);
   return state;
 }
 
@@ -211,7 +218,11 @@ export function registerActions() {
     if (!enabled() || !isPrimaryGM() || !current?.combatantId) return;
     if (prior?.combatantId === current.combatantId && prior?.round === current.round) return;
     const combatant = combat.combatants.get(current.combatantId);
-    if (combatant) resetTurn(combatant).catch((err) => console.warn(`${ID} | could not reset actions`, err));
+    if (!combatant) return;
+    const before = combat.combatants.get(prior?.combatantId);
+    if (combatant.group && before?.group === combatant.group && prior?.round === current.round) return;
+    const members = combatant.group ? Array.from(combatant.group.members ?? [combatant]) : [combatant];
+    for (const m of members) resetTurn(m).catch((err) => console.warn(`${ID} | could not reset actions`, err));
   });
   Hooks.on('createChatMessage', (message) => {
     if (enabled() && isPrimaryGM()) onAbilityUse(message).catch((err) => console.warn(`${ID} | could not mark an action`, err));
