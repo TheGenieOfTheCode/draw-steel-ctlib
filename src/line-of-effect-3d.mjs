@@ -24,6 +24,7 @@ for (const hook of ['canvasReady', 'createWall', 'updateWall', 'deleteWall', 'cr
 export const lineOfEffect3dOn = () => config.get('lineOfEffect3d') !== false && !!canvas?.scene;
 
 config.define('wallHeightMovement', true);
+config.define('range3d', true);
 
 export function registerWallHeightMovement() {
   const Backend = CONFIG.Canvas?.polygonBackends?.move;

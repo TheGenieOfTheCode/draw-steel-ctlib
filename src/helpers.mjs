@@ -1286,10 +1286,17 @@ export const footprintDistFromBounds = (aL, aT, aW, aH, bL, bT, bW, bH) => {
   return canvas.grid.measurePath([{ x: px, y: py }, { x: qx, y: qy }]).distance;
 };
 
-export const tokFootprintDist = (tokA, tokB) => footprintDistFromBounds(
-  tokA.document.x, tokA.document.y, tokA.document.width, tokA.document.height,
-  tokB.document.x, tokB.document.y, tokB.document.width, tokB.document.height,
-);
+export const tokFootprintDist = (tokA, tokB) => {
+  const flat = footprintDistFromBounds(
+    tokA.document.x, tokA.document.y, tokA.document.width, tokA.document.height,
+    tokB.document.x, tokB.document.y, tokB.document.width, tokB.document.height,
+  );
+  if (config.get('range3d') === false || !canvas?.scene) return flat;
+  const a = tokenColumn(tokA);
+  const b = tokenColumn(tokB);
+  const gap = Math.max(0, b.z - (a.z + a.d), a.z - (b.z + b.d));
+  return Math.max(flat, gap * (canvas.grid.distance || 1));
+};
 
 export const getWallBlockTileAt = (gx, gy) => {
   return canvas.tiles.placeables.find(t => {
