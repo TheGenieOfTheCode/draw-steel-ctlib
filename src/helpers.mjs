@@ -2,7 +2,7 @@ import { beginPickerOverlay, watchRightClick } from './picker-overlay.mjs';
 import * as config from './config.mjs';
 import { getSocket } from './socket.mjs';
 import { executeAsDirector } from './primary-director.mjs';
-import { lineBlocked3d, tokenColumn, lineOfEffect3dOn } from './line-of-effect-3d.mjs';
+import { lineBlocked3d, lineHits, firstBlock3d, coverWallHit3d, tokenColumn, lineOfEffect3dOn } from './line-of-effect-3d.mjs';
 
 const asDirector = (handler, ...args) => executeAsDirector(getSocket(), handler, ...args);
 
@@ -387,6 +387,12 @@ export function wallGrantsCover(wall) {
   return ctlibFlag(doc, 'lowCover') === true;
 }
 
+export function segmentCoverHit3d(a, b) {
+  const unit = canvas.scene.grid.distance || 1;
+  const walls = (canvas?.walls?.placeables ?? []).filter(wallGrantsCover);
+  return coverWallHit3d(a, b, (a.elevation ?? 0) / unit, (b.elevation ?? 0) / unit, walls);
+}
+
 const _wallEnds = (wall) => {
   const c = (wall?.document ?? wall)?.c;
   if (!Array.isArray(c) || c.length < 4) return null;
@@ -538,18 +544,27 @@ const _formSquares = (token) => {
 const _rectCorners = (r) =>
   clampOutsetPoints(spaceSamplePoints(r.x, r.y, r.w, r.h), { x: r.x + r.w / 2, y: r.y + r.h / 2 }).slice(1);
 
-const _blockedSquares = (origin, squares, blockers, cover) => {
+const _blockedSquares = (origin, squares, blockers, cover, vertical = null) => {
   let blocked = 0;
   for (const sq of squares) {
     const pts = _rectCorners(sq);
     let seen = 0;
+    let total = 0;
     for (const p of pts) {
-      if (segmentBlocksSight(origin, p)) continue;
-      if (blockers.some(b => _segCrossesToken(origin, p, b))) continue;
-      if (segmentBlockedByCover(origin, p, cover)) continue;
-      seen++;
+      if (!vertical) {
+        total++;
+        if (!blockers.some(b => _segCrossesToken(origin, p, b)) && !segmentBlockedByCover(origin, p, cover) && !segmentBlocksSight(origin, p)) seen++;
+        continue;
+      }
+      const flat = blockers.some(b => _segCrossesToken(origin, p, b)) || !!cover?.tokens.some(t => _segCrossesToken(origin, p, t));
+      const hits = lineHits(origin, p);
+      for (const zb of vertical.heights) {
+        total++;
+        if (flat || coverWallHit3d(origin, p, vertical.za, zb, cover?.walls) !== null) continue;
+        if (firstBlock3d(origin, p, vertical.za, zb, { level: vertical.level, hits }) === null) seen++;
+      }
     }
-    if (atLeastHalfBlocked(seen, pts.length)) blocked++;
+    if (atLeastHalfBlocked(seen, total)) blocked++;
   }
   return blocked;
 };
@@ -685,10 +700,16 @@ export const hasCover = (fromToken, token) => {
   const cover    = coverObstaclesFor(fromToken, token);
 
   
+  const columns = lineOfEffect3dOn() ? [tokenColumn(fromToken), tokenColumn(token)] : null;
+  const heights = columns ? columns[0].heights : [null];
+
   let fewestBlocked = Infinity;
   for (const origin of origins) {
-    const blocked = _blockedSquares(origin, squares, blockers, cover);
-    if (blocked < fewestBlocked) fewestBlocked = blocked;
+    for (const za of heights) {
+      const vertical = columns ? { za, heights: columns[1].heights, level: columns[0].level } : null;
+      const blocked = _blockedSquares(origin, squares, blockers, cover, vertical);
+      if (blocked < fewestBlocked) fewestBlocked = blocked;
+    }
     if (fewestBlocked === 0) break;
   }
 

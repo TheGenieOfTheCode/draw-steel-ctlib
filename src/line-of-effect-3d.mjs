@@ -1,4 +1,4 @@
-import { SceneGrid, wallHeight, solidTerrainRegions } from './terrain.mjs';
+import { SceneGrid, wallHeight, coverWallHeight, solidTerrainRegions } from './terrain.mjs';
 import * as config from './config.mjs';
 
 config.define('lineOfEffect3d', true);
@@ -63,7 +63,7 @@ function crossings(a, b) {
   return out.sort((p, q) => p.t - q.t);
 }
 
-function wallsBlock(info, hits, za, zb) {
+function wallsHit(info, hits, za, zb) {
   let free = true;
   for (const h of hits) {
     if (h.wall) {
@@ -72,9 +72,9 @@ function wallsBlock(info, hits, za, zb) {
       if (!(z > bottom + EPS && z < top - EPS)) continue;
     }
     if (h.limited && free) { free = false; continue; }
-    return true;
+    return h.t;
   }
-  return false;
+  return null;
 }
 
 function hasSurfaces(info, level) {
@@ -87,18 +87,19 @@ function hasSurfaces(info, level) {
   return info.surfaces.get(key);
 }
 
-function surfacesBlock(info, a, b, za, zb, level) {
-  if (za === zb || !hasSurfaces(info, level)) return false;
+function surfacesHit(info, a, b, za, zb, level) {
+  if (za === zb || !hasSurfaces(info, level)) return null;
   const unit = info.grid.unit;
   try {
-    return !!info.scene.testSurfaceCollision({ x: a.x, y: a.y, elevation: za * unit }, { x: b.x, y: b.y, elevation: zb * unit }, { type: 'sight', mode: 'any', level: level ?? undefined });
+    const hit = info.scene.testSurfaceCollision({ x: a.x, y: a.y, elevation: za * unit }, { x: b.x, y: b.y, elevation: zb * unit }, { type: 'sight', mode: 'closest', level: level ?? undefined });
+    return hit ? Math.min(1, Math.max(0, (hit.elevation / unit - za) / (zb - za))) : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-function solidsBlock(info, a, b, za, zb) {
-  if (!info.solids.length) return false;
+function solidsHit(info, a, b, za, zb) {
+  if (!info.solids.length) return null;
   const len = Math.hypot(b.x - a.x, b.y - a.y);
   const steps = Math.max(2, Math.ceil(len / (info.grid.size / 4)));
   for (let i = 1; i < steps; i++) {
@@ -107,10 +108,38 @@ function solidsBlock(info, a, b, za, zb) {
     const z = za + (zb - za) * t;
     for (const s of info.solids) {
       if (!(z > s.bottom + EPS && z < s.top - EPS)) continue;
-      if (s.region.polygonTree?.testPoint(p)) return true;
+      if (s.region.polygonTree?.testPoint(p)) return t;
     }
   }
-  return false;
+  return null;
+}
+
+export const lineHits = (a, b) => crossings(a, b);
+
+export function firstBlock3d(a, b, za, zb, { level = null, hits = null } = {}) {
+  const info = sceneInfo(canvas.scene);
+  const found = [wallsHit(info, hits ?? crossings(a, b), za, zb), surfacesHit(info, a, b, za, zb, level), solidsHit(info, a, b, za, zb)].filter((t) => t !== null);
+  return found.length ? Math.min(...found) : null;
+}
+
+export function coverWallHit3d(a, b, za, zb, walls) {
+  const info = sceneInfo(canvas.scene);
+  let first = null;
+  for (const w of walls ?? []) {
+    const doc = w.document ?? w;
+    const [x0, y0, x1, y1] = doc.c;
+    const x = foundry.utils.lineSegmentIntersection(a, b, { x: x0, y: y0 }, { x: x1, y: y1 });
+    if (!x || x.t0 <= 0 || x.t0 > 1) continue;
+    let h = info.heights.get(`cover:${doc.id}`);
+    if (!h) {
+      h = coverWallHeight(doc, info.grid);
+      info.heights.set(`cover:${doc.id}`, h);
+    }
+    const z = za + (zb - za) * x.t0;
+    if (!(z > h.bottom + EPS && z < h.top - EPS)) continue;
+    if (first === null || x.t0 < first) first = x.t0;
+  }
+  return first;
 }
 
 export function lineBlocked3d(a, b, from, to) {
@@ -118,9 +147,9 @@ export function lineBlocked3d(a, b, from, to) {
   const hits = crossings(a, b);
   for (const za of from.heights) {
     for (const zb of to.heights) {
-      if (wallsBlock(info, hits, za, zb)) continue;
-      if (surfacesBlock(info, a, b, za, zb, from.level)) continue;
-      if (solidsBlock(info, a, b, za, zb)) continue;
+      if (wallsHit(info, hits, za, zb) !== null) continue;
+      if (surfacesHit(info, a, b, za, zb, from.level) !== null) continue;
+      if (solidsHit(info, a, b, za, zb) !== null) continue;
       return false;
     }
   }
@@ -128,9 +157,11 @@ export function lineBlocked3d(a, b, from, to) {
 }
 
 export function segmentBlocked3d(a, b) {
-  const info = sceneInfo(canvas.scene);
-  const unit = info.grid.unit;
-  const za = (a.elevation ?? 0) / unit;
-  const zb = (b.elevation ?? 0) / unit;
-  return wallsBlock(info, crossings(a, b), za, zb) || surfacesBlock(info, a, b, za, zb, a.level ?? null) || solidsBlock(info, a, b, za, zb);
+  const unit = sceneInfo(canvas.scene).grid.unit;
+  return firstBlock3d(a, b, (a.elevation ?? 0) / unit, (b.elevation ?? 0) / unit, { level: a.level ?? null }) !== null;
+}
+
+export function segmentHit3d(a, b) {
+  const unit = sceneInfo(canvas.scene).grid.unit;
+  return firstBlock3d(a, b, (a.elevation ?? 0) / unit, (b.elevation ?? 0) / unit, { level: a.level ?? null });
 }

@@ -52,6 +52,14 @@ export function wallHeight(wall, grid = new SceneGrid(wall.parent)) {
   return { bottom: grid.toSquares(bottom), top: grid.toSquares(top) };
 }
 
+export const LOW_COVER_DROP = 0.5;
+
+export function coverWallHeight(wall, grid = new SceneGrid(wall.parent)) {
+  const { bottom, top } = wallHeight(wall, grid);
+  const base = Number.isFinite(bottom) ? bottom : finite(grid.scene.getFlag?.(MODULE_ID, 'ground'), 0);
+  return { bottom, top: (Number.isFinite(top) ? top : base + 1) - LOW_COVER_DROP };
+}
+
 export function tagsOf(doc) {
   const d = doc?.document ?? doc;
   const out = new Set();
