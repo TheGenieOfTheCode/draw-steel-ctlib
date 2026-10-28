@@ -35,12 +35,12 @@ export class SceneGrid {
 const finite = (v, fallback) => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? fallback : Number(v));
 
 export function wallHeight(wall, grid = new SceneGrid(wall.parent)) {
-  const own = wall.flags?.[MODULE_ID]?.height;
-  const legacy = wall.flags?.['wall-height'];
-  const src = own ?? legacy;
-  if (src && (src.bottom != null || src.top != null)) {
-    return { bottom: finite(src.bottom, -Infinity) / (own ? 1 : grid.unit), top: finite(src.top, Infinity) / (own ? 1 : grid.unit) };
+  const standard = wall.flags?.['wall-height'];
+  if (standard && (standard.bottom != null || standard.top != null)) {
+    return { bottom: finite(standard.bottom, -Infinity) / grid.unit, top: finite(standard.top, Infinity) / grid.unit };
   }
+  const own = wall.flags?.[MODULE_ID]?.height;
+  if (own && (own.bottom != null || own.top != null)) return { bottom: finite(own.bottom, -Infinity), top: finite(own.top, Infinity) };
   const levels = wall.levels?.size ? [...wall.levels].map((id) => grid.scene.levels.get(id)).filter(Boolean) : [];
   if (!levels.length) return { bottom: -Infinity, top: Infinity };
   let bottom = Infinity;

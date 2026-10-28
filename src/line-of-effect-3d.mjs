@@ -4,6 +4,7 @@ import * as config from './config.mjs';
 config.define('lineOfEffect3d', true);
 
 const EPS = 1e-4;
+export const CORNER = 0.05;
 let _info = null;
 
 const sceneInfo = (scene) => {
@@ -27,7 +28,7 @@ export function tokenColumn(token) {
   const z = grid.toSquares(doc.elevation ?? 0);
   const size = Number(doc.actor?.system?.combat?.size?.value) || 0;
   const d = Math.max(1, size, Number(doc.depth) > 1 ? Number(doc.depth) : 1);
-  return { z, d, heights: [z + d / 2, z + d - 0.1, z + 0.1], level: doc.level ?? null };
+  return { z, d, heights: [z + CORNER, z + d - CORNER], level: doc.level ?? null };
 }
 
 function heightOf(info, wall) {
