@@ -19,4 +19,4 @@ export { RESOURCE_TOKENS, drawResourceToken, resourceTokenURI, resourceTokenHTML
 export { openBugReport, reportableModules, suggestFixes } from './bug-report.mjs';
 export { settingRequirement, moduleState, requirementMet, requiredSetting, requirementBadgeHTML, markRequirement } from './module-requirements.mjs';
 export { SceneGrid, SceneTerrain, TERRAIN_BEHAVIOR, wallHeight, coverWallHeight, LOW_COVER_DROP, tagsOf, materialOf, solidTerrainRegions } from './terrain.mjs';
-export { lineBlocked3d, segmentBlocked3d, segmentHit3d, firstBlock3d, coverWallHit3d, lineHits, tokenColumn, resetLineOfEffect3d, CORNER as LOE_CORNER } from './line-of-effect-3d.mjs';
+export { lineBlocked3d, segmentBlocked3d, segmentHit3d, firstBlock3d, coverWallHit3d, adjacent3d, opposite3d, lineHits, tokenColumn, resetLineOfEffect3d, CORNER as LOE_CORNER } from './line-of-effect-3d.mjs';

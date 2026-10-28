@@ -26,6 +26,63 @@ export const lineOfEffect3dOn = () => config.get('lineOfEffect3d') !== false && 
 config.define('wallHeightMovement', true);
 config.define('range3d', true);
 
+config.define('flanking3d', true);
+
+const spaceOf = (token) => {
+  const doc = token.document ?? token;
+  const size = canvas.grid.size;
+  const col = tokenColumn(doc);
+  return { x: doc.x, y: doc.y, z: col.z * size, w: (doc.width ?? 1) * size, h: (doc.height ?? 1) * size, d: col.d * size };
+};
+
+export function adjacent3d(a, b) {
+  const p = spaceOf(a);
+  const q = spaceOf(b);
+  const gap = (p0, ps, q0, qs) => Math.max(q0 - (p0 + ps), p0 - (q0 + qs));
+  const gx = gap(p.x, p.w, q.x, q.w);
+  const gy = gap(p.y, p.h, q.y, q.h);
+  const gz = gap(p.z, p.d, q.z, q.d);
+  const touching = Math.max(gx, gy, gz) <= EPS;
+  const overlapping = gx < -EPS && gy < -EPS && gz < -EPS;
+  return touching && !overlapping;
+}
+
+export function opposite3d(a, target, b) {
+  const centre = (s) => [s.x + s.w / 2, s.y + s.h / 2, s.z + s.d / 2];
+  const p0 = centre(spaceOf(a));
+  const p1 = centre(spaceOf(b));
+  const t = spaceOf(target);
+  const lo = [t.x, t.y, t.z];
+  const hi = [t.x + t.w, t.y + t.h, t.z + t.d];
+  const hits = (axis, plane) => {
+    const delta = p1[axis] - p0[axis];
+    if (Math.abs(delta) < EPS) return false;
+    const k = (plane - p0[axis]) / delta;
+    if (k < -EPS || k > 1 + EPS) return false;
+    for (let other = 0; other < 3; other++) {
+      if (other === axis) continue;
+      const v = p0[other] + (p1[other] - p0[other]) * k;
+      if (v < lo[other] - EPS || v > hi[other] + EPS) return false;
+    }
+    return true;
+  };
+  return [0, 1, 2].some((axis) => hits(axis, lo[axis]) && hits(axis, hi[axis]));
+}
+
+export function registerFlanking3d() {
+  const proto = CONFIG.Token.objectClass?.prototype;
+  const adjacent = proto?.isAdjacentTo;
+  const opposite = proto?.onOppositeSideOrCorner;
+  if (typeof adjacent !== 'function' || typeof opposite !== 'function') return;
+  const on = () => config.get('flanking3d') !== false && lineOfEffect3dOn();
+  proto.isAdjacentTo = function (target) {
+    return on() ? adjacent3d(this, target) : adjacent.call(this, target);
+  };
+  proto.onOppositeSideOrCorner = function (target, ally) {
+    return on() ? opposite3d(this, target, ally) : opposite.call(this, target, ally);
+  };
+}
+
 export function registerWallHeightMovement() {
   const Backend = CONFIG.Canvas?.polygonBackends?.move;
   const original = Backend?.prototype?._testEdgeInclusion;

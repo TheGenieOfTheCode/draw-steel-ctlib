@@ -9,7 +9,7 @@ import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
 import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
-import { registerWallHeightMovement } from './line-of-effect-3d.mjs';
+import { registerWallHeightMovement, registerFlanking3d } from './line-of-effect-3d.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -47,6 +47,7 @@ Hooks.once('init', () => {
 
 Hooks.once('setup', () => {
   registerWallHeightMovement();
+  registerFlanking3d();
   const proto = CONFIG.Token.objectClass?.prototype;
   if (typeof proto?.hasLineOfEffect !== 'function') return;
   proto.hasLineOfEffect = function (target) {
