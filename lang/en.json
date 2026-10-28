@@ -2,12 +2,20 @@
   "CTLIB": {
     "terrain": {
       "label": "Terrain",
-      "kind": { "solid": "Solid block", "liquid": "Liquid", "pit": "Pit" },
+      "kind": { "solid": "Solid block", "liquid": "Liquid", "pit": "Pit", "difficult": "Difficult terrain", "damaging": "Damaging terrain" },
       "material": { "solid": "Something solid", "glass": "Glass", "wood": "Wood", "stone": "Stone", "metal": "Metal" },
       "FIELDS": {
         "kind": {
           "label": "Kind",
-          "hint": "A solid block stops movement and line of effect, and can be stood on. Liquid softens falls. A pit drops the ground to the region's bottom."
+          "hint": "A solid block stops movement and line of effect, and can be stood on. Liquid softens falls. A pit drops the ground to the region's bottom. Difficult and damaging terrain apply within the region's elevation, to fliers too."
+        },
+        "damage": {
+          "label": "Damage",
+          "hint": "For damaging terrain: damage for each square of it a creature enters."
+        },
+        "damageType": {
+          "label": "Damage Type",
+          "hint": "For damaging terrain: the type of that damage."
         },
         "material": {
           "label": "Material",

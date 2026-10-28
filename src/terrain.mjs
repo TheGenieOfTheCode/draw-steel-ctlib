@@ -165,6 +165,7 @@ export class SceneTerrain {
       for (const b of behaviors) {
         if (b.type === TERRAIN_BEHAVIOR) {
           const kind = b.system.kind;
+          if (MOVEMENT_KINDS.includes(kind)) continue;
           const mat = b.system.material || null;
           if (kind === 'liquid') out.push({ id: `${region.id}:liquid`, bottom, top, liquid: true, label: region.name, region: region.uuid });
           else if (kind === 'pit') ground = { ...ground, id: `${region.id}:pit`, top: Number.isFinite(bottom) ? bottom : -Infinity, label: region.name, region: region.uuid };
@@ -223,12 +224,37 @@ export class TerrainBehavior extends foundry.data.regionBehaviors.RegionBehavior
   static LOCALIZATION_PREFIXES = ['CTLIB.terrain'];
 
   static defineSchema() {
-    const { StringField } = foundry.data.fields;
+    const { StringField, NumberField } = foundry.data.fields;
     return {
-      kind: new StringField({ required: true, initial: 'solid', choices: { solid: 'CTLIB.terrain.kind.solid', liquid: 'CTLIB.terrain.kind.liquid', pit: 'CTLIB.terrain.kind.pit' } }),
+      kind: new StringField({ required: true, initial: 'solid', choices: { solid: 'CTLIB.terrain.kind.solid', liquid: 'CTLIB.terrain.kind.liquid', pit: 'CTLIB.terrain.kind.pit', difficult: 'CTLIB.terrain.kind.difficult', damaging: 'CTLIB.terrain.kind.damaging' } }),
       material: new StringField({ required: true, blank: true, initial: 'stone', choices: () => materialChoices() }),
+      damage: new NumberField({ required: true, integer: true, min: 0, initial: 1 }),
+      damageType: new StringField({ required: true, blank: true, initial: '', choices: () => damageTypeChoices() }),
     };
   }
+}
+
+function damageTypeChoices() {
+  const out = { '': 'CTLIB.damage.untyped' };
+  for (const [k, v] of Object.entries(globalThis.ds?.CONFIG?.damageTypes ?? {})) out[k] = v.label ?? k;
+  return out;
+}
+
+const MOVEMENT_KINDS = ['difficult', 'damaging'];
+
+export function terrainAt(scene, { x, y, elevation = 0 }) {
+  const out = { difficult: false, damaging: [] };
+  for (const region of scene?.regions ?? []) {
+    const behaviors = region.behaviors.filter((b) => !b.disabled && b.type === TERRAIN_BEHAVIOR && MOVEMENT_KINDS.includes(b.system.kind));
+    if (!behaviors.length) continue;
+    if (elevation < finite(region.elevation.bottom, -Infinity) || elevation >= finite(region.elevation.top, Infinity)) continue;
+    if (!region.polygonTree?.testPoint({ x, y })) continue;
+    for (const b of behaviors) {
+      if (b.system.kind === 'difficult') out.difficult = true;
+      else out.damaging.push({ region: region.uuid, name: region.name, damage: b.system.damage ?? 1, type: b.system.damageType || '' });
+    }
+  }
+  return out;
 }
 
 function materialChoices() {
