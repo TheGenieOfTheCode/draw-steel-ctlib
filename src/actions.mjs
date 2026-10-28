@@ -153,6 +153,7 @@ const isMalice = (item) => {
 };
 
 async function onAbilityUse(message) {
+  if (message.flags?.[ID]?.granted) return;
   const use = message.system?.parts?.contents?.find((p) => p.type === 'abilityUse');
   if (!use?.abilityUuid) return;
   const item = await fromUuid(use.abilityUuid).catch(() => null);
