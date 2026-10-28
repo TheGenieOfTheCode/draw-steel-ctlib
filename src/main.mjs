@@ -43,4 +43,12 @@ Hooks.once('init', () => {
   });
 });
 
+Hooks.once('setup', () => {
+  const proto = CONFIG.Token.objectClass?.prototype;
+  if (typeof proto?.hasLineOfEffect !== 'function') return;
+  proto.hasLineOfEffect = function (target) {
+    return ctlib.hasSightToToken(this, target);
+  };
+});
+
 Hooks.on('canvasReady', () => { document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()); });

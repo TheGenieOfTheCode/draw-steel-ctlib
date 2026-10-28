@@ -2,6 +2,7 @@ import { beginPickerOverlay, watchRightClick } from './picker-overlay.mjs';
 import * as config from './config.mjs';
 import { getSocket } from './socket.mjs';
 import { executeAsDirector } from './primary-director.mjs';
+import { lineBlocked3d, tokenColumn, lineOfEffect3dOn } from './line-of-effect-3d.mjs';
 
 const asDirector = (handler, ...args) => executeAsDirector(getSocket(), handler, ...args);
 
@@ -443,10 +444,11 @@ export const hasSightToToken = (fromToken, token, opts = {}) => {
   const { origins, targets } = _sightEnds(fromToken, token, opts);
 
   const blockers = [...loeBlockersFor(fromToken, token), ...fullCoverBlockersFor(fromToken, token)];
+  const columns = lineOfEffect3dOn() ? [tokenColumn(fromToken), tokenColumn(token)] : null;
 
   for (const p of targets) {
     for (const origin of origins) {
-      if (segmentBlocksSight(origin, p)) continue;
+      if (columns ? lineBlocked3d(origin, p, ...columns) : segmentBlocksSight(origin, p)) continue;
       if (blockers.some(b => _segCrossesToken(origin, p, b))) continue;
       return true;
     }
