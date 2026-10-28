@@ -20,6 +20,7 @@
       { "id": "socketlib", "type": "module", "compatibility": { "minimum": "1.1.3" } }
     ]
   },
+  "documentTypes": { "RegionBehavior": { "terrain": {} } },
   "esmodules": [
     "src/main.mjs"
   ],

@@ -1,5 +1,20 @@
 {
   "CTLIB": {
+    "terrain": {
+      "label": "Terrain",
+      "kind": { "solid": "Solid block", "liquid": "Liquid", "pit": "Pit" },
+      "material": { "solid": "Something solid", "glass": "Glass", "wood": "Wood", "stone": "Stone", "metal": "Metal" },
+      "FIELDS": {
+        "kind": {
+          "label": "Kind",
+          "hint": "A solid block stops movement and line of effect, and can be stood on. Liquid softens falls. A pit drops the ground to the region's bottom."
+        },
+        "material": {
+          "label": "Material",
+          "hint": "What a solid block is made of, so creatures can be hurled through it. Something solid never breaks."
+        }
+      }
+    },
     "damage": {
       "untyped": "Untyped",
       "healing": "Healing",

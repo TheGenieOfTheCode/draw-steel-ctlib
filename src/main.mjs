@@ -8,6 +8,7 @@ import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
+import { registerTerrainBehavior } from './terrain.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -31,6 +32,7 @@ Hooks.once('init', () => {
   registerMigration();
   registerCgmpGuard();
   registerRichTips();
+  registerTerrainBehavior();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
   ctlib.registerSettingsLayout(MODULE_ID, [], {
