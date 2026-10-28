@@ -204,6 +204,8 @@ const cornerInset = () => {
 
 export const cornersAreOutside = () => cornerInset() < 0;
 
+export const loeCornerInsets = () => ({ inset: cornerInset(), back: CORNER_INSETS.restrictive, probe: PROBE });
+
 const PROBE = 0.02;
 
 export const cornersNeedClamping = () => cornerInset() <= 0;
@@ -219,7 +221,7 @@ export const sightSamples = ({ inside = false } = {}) => {
 
 export const SIGHT_SAMPLE_COUNT = 5;
 
-export const clampOutsetPoints = (points, centre) => {
+export const clampOutsetPoints = (points, centre, coverWalls = null) => {
   if (!cornersNeedClamping() || !centre) return points;
 
   const GS = canvas?.grid?.size ?? 100;
@@ -231,7 +233,9 @@ export const clampOutsetPoints = (points, centre) => {
 
   return points.map((p) => {
     if (!p.clamped) return p;
-    return segmentBlocksSight(centre, beyond(p)) ? { ...p, x: p.clamped.x, y: p.clamped.y, pulled: true } : p;
+    const out = beyond(p);
+    const hit = segmentBlocksSight(centre, out) || !!coverWalls?.some((w) => _crossesCoverWall(centre, out, w));
+    return hit ? { ...p, x: p.clamped.x, y: p.clamped.y, pulled: true } : p;
   });
 };
 
@@ -387,6 +391,9 @@ export function wallGrantsCover(wall) {
   return ctlibFlag(doc, 'lowCover') === true;
 }
 
+export const loePullBlocked = (a, b) =>
+  segmentBlocksSight(a, b) || (canvas?.walls?.placeables ?? []).some((w) => wallGrantsCover(w) && _crossesCoverWall(a, b, w));
+
 export function segmentCoverHit3d(a, b) {
   const unit = canvas.scene.grid.distance || 1;
   const walls = (canvas?.walls?.placeables ?? []).filter(wallGrantsCover);
@@ -517,9 +524,9 @@ const _spaceRect = (token) => {
   };
 };
 
-const _spaceCorners = (token) => {
+const _spaceCorners = (token, coverWalls = null) => {
   const { x, y, w, h } = _spaceRect(token);
-  return clampOutsetPoints(spaceSamplePoints(x, y, w, h), { x: x + w / 2, y: y + h / 2 }).slice(1);
+  return clampOutsetPoints(spaceSamplePoints(x, y, w, h), { x: x + w / 2, y: y + h / 2 }, coverWalls).slice(1);
 };
 
 const _spaceCentre = (token) => {
@@ -541,13 +548,13 @@ const _formSquares = (token) => {
   return out;
 };
 
-const _rectCorners = (r) =>
-  clampOutsetPoints(spaceSamplePoints(r.x, r.y, r.w, r.h), { x: r.x + r.w / 2, y: r.y + r.h / 2 }).slice(1);
+const _rectCorners = (r, coverWalls = null) =>
+  clampOutsetPoints(spaceSamplePoints(r.x, r.y, r.w, r.h), { x: r.x + r.w / 2, y: r.y + r.h / 2 }, coverWalls).slice(1);
 
 const _blockedSquares = (origin, squares, blockers, cover, vertical = null) => {
   let blocked = 0;
   for (const sq of squares) {
-    const pts = _rectCorners(sq);
+    const pts = _rectCorners(sq, vertical ? cover?.walls : null);
     let seen = 0;
     let total = 0;
     for (const p of pts) {
@@ -695,9 +702,9 @@ export const hasCover = (fromToken, token) => {
   if (loeRangeBlocked(fromToken, token)) return true;
 
   const squares  = _formSquares(token);
-  const origins  = config.get('trueDrawSteelLos') ? _spaceCorners(fromToken) : [_spaceCentre(fromToken)];
   const blockers = [...loeBlockersFor(fromToken, token), ...fullCoverBlockersFor(fromToken, token)];
   const cover    = coverObstaclesFor(fromToken, token);
+  const origins  = config.get('trueDrawSteelLos') ? _spaceCorners(fromToken, lineOfEffect3dOn() ? cover.walls : null) : [_spaceCentre(fromToken)];
 
   
   const columns = lineOfEffect3dOn() ? [tokenColumn(fromToken), tokenColumn(token)] : null;

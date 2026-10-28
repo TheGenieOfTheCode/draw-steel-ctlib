@@ -1,4 +1,5 @@
-import { SceneGrid, wallHeight, coverWallHeight, solidTerrainRegions } from './terrain.mjs';
+import { SceneGrid, SceneTerrain, wallHeight, coverWallHeight, solidTerrainRegions } from './terrain.mjs';
+import { loeCornerInsets } from './helpers.mjs';
 import * as config from './config.mjs';
 
 config.define('lineOfEffect3d', true);
@@ -24,11 +25,31 @@ export const lineOfEffect3dOn = () => config.get('lineOfEffect3d') !== false && 
 
 export function tokenColumn(token) {
   const doc = token?.document ?? token;
-  const grid = sceneInfo(doc.parent ?? canvas.scene).grid;
-  const z = grid.toSquares(doc.elevation ?? 0);
+  const info = sceneInfo(doc.parent ?? canvas.scene);
+  const z = info.grid.toSquares(doc.elevation ?? 0);
   const size = Number(doc.actor?.system?.combat?.size?.value) || 0;
   const d = Math.max(1, size, Number(doc.depth) > 1 ? Number(doc.depth) : 1);
-  return { z, d, heights: [z + CORNER, z + d - CORNER], level: doc.level ?? null };
+  const level = doc.level ?? null;
+  const { inset, back, probe } = loeCornerInsets();
+  const ends = [[z + inset * d, z + back * d, -probe], [z + d - inset * d, z + d - back * d, probe]];
+  const heights = ends.map(([h, pulled, step]) => (inset <= 0 && columnBlocked(info, doc, z + d / 2, h + step, level) ? pulled : h));
+  return { z, d, heights, level };
+}
+
+function columnBlocked(info, doc, from, to, level) {
+  const size = info.grid.size;
+  const w = Math.max(1, Math.round(doc.width ?? 1));
+  const h = Math.max(1, Math.round(doc.height ?? 1));
+  info.terrain ??= new SceneTerrain({ scene: info.scene });
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < h; dy++) {
+      const cell = { x: Math.round(doc.x / size) + dx, y: Math.round(doc.y / size) + dy };
+      if (info.terrain.slabsAt(cell).some((s) => !s.liquid && to > s.bottom - EPS && to < s.top + EPS && !(s.surface && s.top === s.bottom))) return true;
+      const c = info.grid.center(cell);
+      if (surfacesHit(info, c, c, from, to, level) !== null) return true;
+    }
+  }
+  return false;
 }
 
 function heightOf(info, wall) {
