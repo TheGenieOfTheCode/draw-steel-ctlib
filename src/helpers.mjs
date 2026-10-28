@@ -114,13 +114,17 @@ export const ctlibFlag = (doc, key) => doc?.flags?.[CTLIB_SCOPE]?.[key] ?? doc?.
 const _doc  = (obj) => obj?.document ?? obj;
 const _tags = (obj) => ctlibFlag(_doc(obj), 'tags') ?? [];
 
-export const hasTags = (obj, tag) => {
-  if (taggerActive()) return Tagger.hasTags(obj, tag);
-  const tags = _tags(obj);
-  return Array.isArray(tag) ? tag.every(t => tags.includes(t)) : tags.includes(tag);
+export const getTags = (obj) => {
+  if (!taggerActive()) return _tags(obj);
+  const own = _tags(obj);
+  const tagged = Tagger.getTags(obj) ?? [];
+  return own.length ? [...new Set([...tagged, ...own])] : tagged;
 };
 
-export const getTags = (obj) => taggerActive() ? Tagger.getTags(obj) : _tags(obj);
+export const hasTags = (obj, tag) => {
+  const tags = getTags(obj);
+  return Array.isArray(tag) ? tag.every(t => tags.includes(t)) : tags.includes(tag);
+};
 
 const _taggable = () => {
   const scene = canvas.scene;
@@ -128,8 +132,11 @@ const _taggable = () => {
 };
 
 export const getByTag = (tag) => {
-  if (taggerActive()) return Tagger.getByTag(tag, { objects: _taggable() });
-  return _taggable().filter(doc => _tags(doc).includes(tag));
+  const own = _taggable().filter(doc => _tags(doc).includes(tag));
+  if (!taggerActive()) return own;
+  const tagged = Tagger.getByTag(tag, { objects: _taggable() }) ?? [];
+  const ids = new Set(tagged.map(d => (d.document ?? d).id));
+  return [...tagged, ...own.filter(doc => !ids.has(doc.id))];
 };
 
 const _relayTags = (obj) => {
@@ -137,9 +144,20 @@ const _relayTags = (obj) => {
   return !!doc?.uuid && !doc.isOwner;
 };
 
+const _foldIntoTagger = async (obj) => {
+  const doc = _doc(obj);
+  const own = _tags(obj);
+  if (!own.length) return;
+  await Tagger.addTags(obj, own);
+  const unset = {};
+  for (const scope of [CTLIB_SCOPE, LEGACY_SCOPE]) if (doc.flags?.[scope]?.tags) unset[`flags.${scope}.-=tags`] = null;
+  await safeUpdate(doc, unset);
+};
+
 export const addTags = async (obj, tags) => {
   if (taggerActive()) {
     if (_relayTags(obj)) return await asDirector('ctlib.addTags', _doc(obj).uuid, tags);
+    await _foldIntoTagger(obj);
     return Tagger.addTags(obj, tags);
   }
   const doc  = _doc(obj);
@@ -150,6 +168,7 @@ export const addTags = async (obj, tags) => {
 export const removeTags = async (obj, tags) => {
   if (taggerActive()) {
     if (_relayTags(obj)) return await asDirector('ctlib.removeTags', _doc(obj).uuid, tags);
+    await _foldIntoTagger(obj);
     return Tagger.removeTags(obj, tags);
   }
   const doc  = _doc(obj);
