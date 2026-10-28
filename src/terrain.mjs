@@ -99,6 +99,7 @@ export class SceneTerrain {
     this.scene = scene;
     this.grid = new SceneGrid(scene);
     this.ground = finite(scene.getFlag?.(MODULE_ID, 'ground'), 0);
+    this.designed = game.modules?.get?.('ds-terrain-designer')?.active ? (scene.getFlag?.('ds-terrain-designer', 'elevation-levels') ?? null) : null;
     this.#indexWalls();
   }
 
@@ -154,7 +155,8 @@ export class SceneTerrain {
     const g = this.grid;
     const c = g.center(cell);
     const out = [];
-    let ground = { id: 'ground', bottom: -Infinity, top: this.ground, material: null, label: 'ground' };
+    const designed = Number(this.designed?.[`${cell.x},${cell.y}`]);
+    let ground = { id: 'ground', bottom: -Infinity, top: Number.isFinite(designed) ? g.toSquares(designed) : this.ground, material: null, label: 'ground' };
     for (const region of this.scene.regions) {
       const behaviors = region.behaviors.filter((b) => !b.disabled && (b.type === 'defineSurface' || b.type === TERRAIN_BEHAVIOR));
       if (!behaviors.length) continue;
