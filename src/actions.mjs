@@ -65,6 +65,7 @@ export function get(target) {
   const effect = trackerEffect(combatant.actor);
   if (effect) state.triggered = !!effect.disabled;
   state.mainFree = state.main === null;
+  state.minion = isMinion(combatant);
   state.onTurn = isActing(combatant);
   return state;
 }
@@ -99,11 +100,19 @@ export async function set(target, patch) {
 
 export function plan(state, kind) {
   if (!state) return null;
+  if (state.minion && kind !== 'triggered') {
+    if (kind === 'move' && !state.move) return { move: true };
+    if (state.main !== null || state.maneuver) return null;
+    if (kind === 'maneuver') return { maneuver: true, main: 'maneuver' };
+    return { main: kind };
+  }
   if (kind === 'main') return state.main === null ? { main: 'main' } : null;
   if (kind === 'triggered') return state.triggered ? null : { triggered: true };
   if (!state[kind]) return { [kind]: true };
   return state.main === null ? { main: kind } : null;
 }
+
+const sources = (patch, source) => Object.fromEntries(Object.keys(patch).filter((k) => KINDS.includes(k)).map((k) => [k, source]));
 
 export async function spend(target, kind, { source = null, force = false } = {}) {
   const state = get(target);
@@ -112,7 +121,7 @@ export async function spend(target, kind, { source = null, force = false } = {})
   if (!patch && !force) return null;
   patch ??= kind === 'triggered' ? { triggered: true } : { [kind]: true };
   const slot = Object.keys(patch)[0];
-  await set(target, { ...patch, by: source ? { [slot]: source } : {} });
+  await set(target, { ...patch, by: source ? sources(patch, source) : {} });
   return slot;
 }
 
@@ -160,16 +169,15 @@ async function onAbilityUse(message) {
       if (!isMinion(member) || member.isDefeated) continue;
       const s = get(member);
       if (!s || s.apart) continue;
-      const patch = type === 'main' ? (s.main === null ? { main: 'main' } : null) : (s.maneuver ? null : { maneuver: true });
-      if (patch) await write(member.uuid, { ...patch, by: { [Object.keys(patch)[0]]: message.id } });
+      const patch = plan(s, type);
+      if (patch) await write(member.uuid, { ...patch, by: sources(patch, message.id) });
     }
     return;
   }
   const patch = plan(state, type);
   if (!patch) return;
-  const slot = Object.keys(patch)[0];
   if (squad && type === 'maneuver') patch.apart = true;
-  await write(combatant.uuid, { ...patch, by: { [slot]: message.id } });
+  await write(combatant.uuid, { ...patch, by: sources(patch, message.id) });
 }
 
 async function onMessageDeleted(message) {
