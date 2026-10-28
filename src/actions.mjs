@@ -23,7 +23,9 @@ export const enable = (moduleId) => {
 };
 export const enabled = () => users.size > 0;
 
-const FRESH = Object.freeze({ main: null, maneuver: false, move: false, triggered: false, by: {} });
+const FRESH = Object.freeze({ main: null, maneuver: false, move: false, triggered: false, apart: false, by: {} });
+const SQUAD_MANEUVERS = new Set(['grab', 'knockback', 'hide', 'dsct-hide', 'search', 'dsct-search', 'search-for-hidden-creatures']);
+const isMinion = (combatant) => !!combatant?.actor?.system?.isMinion;
 
 export function combatantOf(target) {
   if (!target) return null;
@@ -124,6 +126,7 @@ export async function refund(target, { source = null, slot = null } = {}) {
     patch[s] = s === 'main' ? null : false;
     patch.by[s] = null;
   }
+  if (slots.includes('maneuver')) patch.apart = false;
   await set(target, patch);
   return slots;
 }
@@ -131,7 +134,7 @@ export async function refund(target, { source = null, slot = null } = {}) {
 async function resetTurn(combatant) {
   const stored = combatant.getFlag(ID, FLAG);
   const by = Object.fromEntries(Object.entries(stored?.by ?? {}).filter(([k]) => k === 'triggered'));
-  await write(combatant.uuid, { main: null, maneuver: false, move: false, by: { main: null, maneuver: null, move: null, ...by } });
+  await write(combatant.uuid, { main: null, maneuver: false, move: false, apart: false, by: { main: null, maneuver: null, move: null, ...by } });
 }
 
 const isMalice = (item) => {
@@ -150,10 +153,23 @@ async function onAbilityUse(message) {
   const state = get(actor);
   if (!state) return;
   if (type !== 'triggered' && !state.onTurn) return;
+  const combatant = combatantOf(actor);
+  const squad = isMinion(combatant) && combatant.group ? combatant.group : null;
+  if (squad && !state.apart && (type === 'main' || (type === 'maneuver' && SQUAD_MANEUVERS.has(item.system._dsid)))) {
+    for (const member of squad.members) {
+      if (!isMinion(member) || member.isDefeated) continue;
+      const s = get(member);
+      if (!s || s.apart) continue;
+      const patch = type === 'main' ? (s.main === null ? { main: 'main' } : null) : (s.maneuver ? null : { maneuver: true });
+      if (patch) await write(member.uuid, { ...patch, by: { [Object.keys(patch)[0]]: message.id } });
+    }
+    return;
+  }
   const patch = plan(state, type);
   if (!patch) return;
   const slot = Object.keys(patch)[0];
-  await write(combatantOf(actor).uuid, { ...patch, by: { [slot]: message.id } });
+  if (squad && type === 'maneuver') patch.apart = true;
+  await write(combatant.uuid, { ...patch, by: { [slot]: message.id } });
 }
 
 async function onMessageDeleted(message) {
