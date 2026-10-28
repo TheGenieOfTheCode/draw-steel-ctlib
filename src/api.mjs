@@ -1,5 +1,6 @@
 export * as config from './config.mjs';
 export * as services from './services.mjs';
+export * as actions from './actions.mjs';
 export * from './token-preview.mjs';
 export * from './picker-overlay.mjs';
 export { TIP_CLASS, richTip, tipFrom, setTip, tipAttrs, pillTip, richifyTooltips, textTip } from './rich-tips.mjs';

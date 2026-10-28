@@ -10,6 +10,7 @@ import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
 import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
 import { registerWallHeightMovement, registerFlanking3d } from './line-of-effect-3d.mjs';
+import { registerActions, writeHandler as writeActions } from './actions.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -23,6 +24,7 @@ Hooks.once('socketlib.ready', () => {
   socket.register('ctlib.toggleStatusEffect', async (uuid, effectId, options) => { const actor = await fromUuid(uuid); if (actor) return await actor.toggleStatusEffect(effectId, options); });
   socket.register('ctlib.addTags',            async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.addTags(doc, tags); });
   socket.register('ctlib.removeTags',         async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.removeTags(doc, tags); });
+  socket.register('ctlib.actions.write',      writeActions);
   setSocket(socket);
 });
 
@@ -35,6 +37,7 @@ Hooks.once('init', () => {
   registerRichTips();
   registerTerrainBehavior();
   registerPitRendering();
+  registerActions();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
   ctlib.registerSettingsLayout(MODULE_ID, [], {

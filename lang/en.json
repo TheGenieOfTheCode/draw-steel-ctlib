@@ -20,6 +20,15 @@
       "healing": "Healing",
       "temporary": "Temporary Stamina"
     },
+    "actions": {
+      "main": "Main action",
+      "maneuver": "Maneuver",
+      "move": "Move action",
+      "triggered": "Triggered action",
+      "free": "unspent",
+      "spent": "spent",
+      "as": { "move": "turned into a move action", "maneuver": "turned into a maneuver" }
+    },
     "faces": {
       "notOnScene": "{name} is not on this scene."
     },

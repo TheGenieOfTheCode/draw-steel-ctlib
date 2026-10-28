@@ -823,3 +823,8 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 #chat-controls > #message-modes { flex-shrink: 0; }
 #chat-controls > .control-buttons { flex: 0 1 auto; min-width: 0; }
 #chat-controls > .control-buttons > .ui-control { flex: 0 1 var(--control-size, 32px); min-width: 24px; }
+
+.combat-tracker .ctlib-actions { display: inline-flex; gap: 1px; }
+.combat-tracker .ctlib-actions .ctlib-action.spent { opacity: 0.3; }
+.combat-tracker .ctlib-actions .ctlib-action.converted { opacity: 0.6; font-size: 0.85em; }
+.combat-tracker .ctlib-actions .ctlib-action[aria-disabled] { cursor: default; }
