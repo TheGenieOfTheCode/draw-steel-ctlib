@@ -8,7 +8,8 @@ import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
-import { registerTerrainBehavior } from './terrain.mjs';
+import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
+import { registerWallHeightMovement } from './line-of-effect-3d.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -33,6 +34,7 @@ Hooks.once('init', () => {
   registerCgmpGuard();
   registerRichTips();
   registerTerrainBehavior();
+  registerPitRendering();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
   ctlib.registerSettingsLayout(MODULE_ID, [], {
@@ -44,6 +46,7 @@ Hooks.once('init', () => {
 });
 
 Hooks.once('setup', () => {
+  registerWallHeightMovement();
   const proto = CONFIG.Token.objectClass?.prototype;
   if (typeof proto?.hasLineOfEffect !== 'function') return;
   proto.hasLineOfEffect = function (target) {

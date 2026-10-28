@@ -23,6 +23,29 @@ for (const hook of ['canvasReady', 'createWall', 'updateWall', 'deleteWall', 'cr
 
 export const lineOfEffect3dOn = () => config.get('lineOfEffect3d') !== false && !!canvas?.scene;
 
+config.define('wallHeightMovement', true);
+
+export function registerWallHeightMovement() {
+  const Backend = CONFIG.Canvas?.polygonBackends?.move;
+  const original = Backend?.prototype?._testEdgeInclusion;
+  if (!original) return;
+  Backend.prototype._testEdgeInclusion = function (edge, edgeTypes) {
+    if (!original.call(this, edge, edgeTypes)) return false;
+    if (this.config?.type !== 'move' || config.get('wallHeightMovement') === false) return true;
+    const wall = edge.object?.documentName === 'Wall' ? edge.object : (edge.object?.document?.documentName === 'Wall' ? edge.object.document : null);
+    const token = this.config.source?.object?.document;
+    const elevation = this.origin?.elevation;
+    if (!wall || !token || !Number.isFinite(elevation)) return true;
+    const info = sceneInfo(wall.parent ?? canvas.scene);
+    const { bottom, top } = heightOf(info, wall);
+    if (bottom === -Infinity && top === Infinity) return true;
+    const unit = info.grid.unit;
+    const feet = (elevation - ((token.depth ?? 1) * unit) / 2) / unit;
+    const { d } = tokenColumn(token);
+    return feet < top - EPS && feet + d > bottom + EPS;
+  };
+}
+
 export function tokenColumn(token) {
   const doc = token?.document ?? token;
   const info = sceneInfo(doc.parent ?? canvas.scene);

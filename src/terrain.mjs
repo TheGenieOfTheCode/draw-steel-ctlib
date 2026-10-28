@@ -239,6 +239,38 @@ function materialChoices() {
   return out;
 }
 
+function pitMouth(token) {
+  const doc = token.document;
+  const scene = doc.parent;
+  if (!scene || !(doc.elevation < 0)) return null;
+  const c = token.center;
+  let mouth = null;
+  for (const region of scene.regions) {
+    const pit = region.behaviors.some((b) => !b.disabled && b.type === TERRAIN_BEHAVIOR && b.system.kind === 'pit');
+    if (!pit || !region.polygonTree?.testPoint(c)) continue;
+    const top = finite(region.elevation.top, 0);
+    if (doc.elevation >= finite(region.elevation.bottom, -Infinity) && doc.elevation < top) mouth = Math.max(mouth ?? -Infinity, top);
+  }
+  return mouth;
+}
+
+function showInPit(token) {
+  if (!token.mesh || token.destroyed) return;
+  const mouth = pitMouth(token);
+  const shown = mouth === null ? token.document.elevation : Math.max(token.document.elevation, mouth);
+  if (token.mesh.elevation !== shown) token.mesh.elevation = shown;
+}
+
+export function registerPitRendering() {
+  Hooks.on('refreshToken', (token, flags) => {
+    if (flags.refreshElevation || flags.refreshPosition || flags.refreshSize) showInPit(token);
+  });
+  const all = () => { for (const t of canvas.tokens?.placeables ?? []) showInPit(t); };
+  for (const hook of ['createRegion', 'updateRegion', 'deleteRegion', 'createRegionBehavior', 'updateRegionBehavior', 'deleteRegionBehavior']) {
+    Hooks.on(hook, () => setTimeout(all, 0));
+  }
+}
+
 export function registerTerrainBehavior() {
   CONFIG.RegionBehavior.dataModels[TERRAIN_BEHAVIOR] = TerrainBehavior;
   CONFIG.RegionBehavior.typeIcons[TERRAIN_BEHAVIOR] = 'fa-solid fa-mountain';
