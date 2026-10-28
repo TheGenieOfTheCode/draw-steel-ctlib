@@ -715,18 +715,22 @@ export const visibleTargetCorners = (fromToken, token) => {
   return best;
 };
 
-export const hasCover = (fromToken, token) => {
+export const hasCover = (fromToken, token, { origin = null } = {}) => {
   if (!fromToken || !token) return false;
-  if (!hasSightToToken(fromToken, token)) return false;
-  if (loeRangeBlocked(fromToken, token)) return true;
+  if (!origin && !hasSightToToken(fromToken, token)) return false;
+  if (!origin && loeRangeBlocked(fromToken, token)) return true;
 
   const squares  = _formSquares(token);
   const blockers = [...loeBlockersFor(fromToken, token), ...fullCoverBlockersFor(fromToken, token)];
   const cover    = coverObstaclesFor(fromToken, token);
-  const origins  = config.get('trueDrawSteelLos') ? _spaceCorners(fromToken, lineOfEffect3dOn() ? cover.walls : null) : [_spaceCentre(fromToken)];
+  const GS       = canvas.grid.size;
+  const cell     = origin ? { x: origin.x * GS, y: origin.y * GS, w: GS, h: GS } : null;
+  const origins  = cell
+    ? (config.get('trueDrawSteelLos') ? _rectCorners(cell, lineOfEffect3dOn() ? cover.walls : null) : [{ x: cell.x + GS / 2, y: cell.y + GS / 2 }])
+    : (config.get('trueDrawSteelLos') ? _spaceCorners(fromToken, lineOfEffect3dOn() ? cover.walls : null) : [_spaceCentre(fromToken)]);
 
-  
-  const columns = lineOfEffect3dOn() ? [tokenColumn(fromToken), tokenColumn(token)] : null;
+  const from = lineOfEffect3dOn() ? (origin ? { heights: [origin.z + 0.05, origin.z + 0.95], level: tokenColumn(fromToken).level } : tokenColumn(fromToken)) : null;
+  const columns = from ? [from, tokenColumn(token)] : null;
   const heights = columns ? columns[0].heights : [null];
 
   let fewestBlocked = Infinity;
