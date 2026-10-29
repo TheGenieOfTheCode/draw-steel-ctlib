@@ -1,5 +1,6 @@
 import { isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 import { getSocket } from './socket.mjs';
+import { setTip } from './rich-tips.mjs';
 
 const ID = 'draw-steel-ctlib';
 const FLAG = 'actions';
@@ -204,7 +205,7 @@ function pips(combatant) {
     btn.className = `inline-control combatant-control icon fa-solid ${ICONS[as ?? kind]} ctlib-action ctlib-action-${kind}${used ? ' spent' : ''}${as ? ' converted' : ''}`;
     const label = game.i18n.localize(`CTLIB.actions.${kind}`);
     const status = game.i18n.localize(as ? `CTLIB.actions.as.${as}` : used ? 'CTLIB.actions.spent' : 'CTLIB.actions.free');
-    btn.dataset.tooltip = `${label}: ${status}`;
+    setTip(btn, { title: label, category: game.i18n.localize('CTLIB.actions.category'), body: `${status[0].toUpperCase()}${status.slice(1)}.` });
     btn.setAttribute('aria-label', `${label}: ${status}`);
     if (!canEdit) btn.setAttribute('aria-disabled', 'true');
     btn.addEventListener('click', (event) => {

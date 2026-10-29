@@ -84,6 +84,31 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   gap: 6px;
 }
 
+#dsct-picker-topbar .dsct-picker-btns > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#dsct-picker-topbar .dsct-picker-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#dsct-picker-topbar .dsct-picker-stack button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+#dsct-picker-topbar .dsct-picker-stack button kbd {
+  margin-left: auto;
+}
+
 #dsct-picker-topbar .dsct-picker-btns.dsct-btns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

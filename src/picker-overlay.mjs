@@ -118,15 +118,22 @@ export function beginPickerOverlay({ title, status = '', detail = '', tokens = [
   }
   const btnsEl = bar.querySelector('.dsct-picker-btns');
   if (buttonGrid) btnsEl.classList.add('dsct-btns-grid');
-  for (const eb of extraButtons) {
+  const extraButton = (eb) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = `dsct-picker-extra${eb.className ? ` ${eb.className}` : ''}`;
     b.innerHTML = `${eb.icon ? `<i class="${eb.icon}"></i> ` : ''}${foundry.utils.escapeHTML(eb.label ?? '')}${eb.kbd ? ` <kbd>${foundry.utils.escapeHTML(eb.kbd)}</kbd>` : ''}`;
     if (eb.tooltip) setTip(b, { title: eb.label ?? '', category: eb.tipCategory ?? '', body: eb.tooltip });
     b.addEventListener('click', (ev) => { ev.preventDefault(); eb.onClick?.(); });
-    btnsEl.insertBefore(b, btnsEl.querySelector('.dsct-picker-confirm'));
-  }
+    return b;
+  };
+  const stack = (ebs) => {
+    const el = document.createElement('span');
+    el.className = 'dsct-picker-stack';
+    el.append(...ebs.map(extraButton));
+    return el;
+  };
+  for (const eb of extraButtons) btnsEl.insertBefore(Array.isArray(eb) ? stack(eb) : extraButton(eb), btnsEl.querySelector('.dsct-picker-confirm'));
   const help = document.createElement('span');
   help.className = 'dsct-picker-help';
   help.textContent = '?';

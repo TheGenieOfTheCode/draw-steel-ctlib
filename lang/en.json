@@ -2,12 +2,12 @@
   "CTLIB": {
     "terrain": {
       "label": "Terrain",
-      "kind": { "solid": "Solid block", "liquid": "Liquid", "pit": "Pit", "difficult": "Difficult terrain", "damaging": "Damaging terrain" },
-      "material": { "solid": "Something solid", "glass": "Glass", "wood": "Wood", "stone": "Stone", "metal": "Metal" },
+      "kind": { "solid": "Solid Block", "liquid": "Liquid", "pit": "Pit", "difficult": "Difficult Terrain", "damaging": "Damaging Terrain" },
+      "material": { "solid": "Something Solid", "glass": "Glass", "wood": "Wood", "stone": "Stone", "metal": "Metal" },
       "FIELDS": {
         "kind": {
           "label": "Kind",
-          "hint": "A solid block stops line of effect and can be stood on. A pit drops the ground to the region's bottom. Modules that handle movement can add more kinds."
+          "hint": "A Solid Block stops line of effect and can be stood on. A Pit drops the ground to the region's bottom. Modules that handle movement can add more kinds."
         },
         "damage": {
           "label": "Damage",
@@ -19,7 +19,7 @@
         },
         "material": {
           "label": "Material",
-          "hint": "What a solid block is made of, so creatures can be hurled through it. Something solid never breaks."
+          "hint": "What a Solid Block is made of, so creatures can be hurled through it. Something Solid never breaks."
         }
       }
     },
@@ -35,7 +35,8 @@
       "triggered": "Triggered action",
       "free": "unspent",
       "spent": "spent",
-      "as": { "move": "turned into a move action", "maneuver": "turned into a maneuver" }
+      "as": { "move": "turned into a move action", "maneuver": "turned into a maneuver" },
+      "category": "Turn Action"
     },
     "faces": {
       "notOnScene": "{name} is not on this scene."
