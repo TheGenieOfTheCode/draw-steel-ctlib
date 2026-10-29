@@ -299,8 +299,22 @@ export function registerPitRendering() {
   }
 }
 
+const SHEET_HIDDEN_KINDS = ['liquid', ...MOVEMENT_KINDS];
+let _movementKinds = false;
+export const provideTerrainMovement = () => { _movementKinds = true; };
+
 export function registerTerrainBehavior() {
   CONFIG.RegionBehavior.dataModels[TERRAIN_BEHAVIOR] = TerrainBehavior;
   CONFIG.RegionBehavior.typeIcons[TERRAIN_BEHAVIOR] = 'fa-solid fa-mountain';
   CONFIG.RegionBehavior.typeLabels[TERRAIN_BEHAVIOR] = 'CTLIB.terrain.label';
+  Hooks.on('renderApplicationV2', (app, element) => {
+    const doc = app.document;
+    if (_movementKinds || doc?.documentName !== 'RegionBehavior' || doc.type !== TERRAIN_BEHAVIOR) return;
+    const kind = doc.system?.kind;
+    for (const value of SHEET_HIDDEN_KINDS) {
+      if (value !== kind) element.querySelector(`select[name="system.kind"] option[value="${value}"]`)?.remove();
+    }
+    if (kind === 'damaging') return;
+    for (const name of ['system.damage', 'system.damageType']) element.querySelector(`[name="${name}"]`)?.closest('.form-group')?.remove();
+  });
 }
