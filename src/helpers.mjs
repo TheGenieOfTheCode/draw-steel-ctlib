@@ -729,7 +729,8 @@ export const hasCover = (fromToken, token, { origin = null } = {}) => {
     ? (config.get('trueDrawSteelLos') ? _rectCorners(cell, lineOfEffect3dOn() ? cover.walls : null) : [{ x: cell.x + GS / 2, y: cell.y + GS / 2 }])
     : (config.get('trueDrawSteelLos') ? _spaceCorners(fromToken, lineOfEffect3dOn() ? cover.walls : null) : [_spaceCentre(fromToken)]);
 
-  const from = lineOfEffect3dOn() ? (origin ? { heights: [origin.z + 0.05, origin.z + 0.95], level: tokenColumn(fromToken).level } : tokenColumn(fromToken)) : null;
+  const oz = Number.isFinite(origin?.z) ? origin.z : ((fromToken.document ?? fromToken).elevation ?? 0) / (canvas.scene?.grid.distance || 1);
+  const from = lineOfEffect3dOn() ? (origin ? { heights: [oz + 0.05, oz + 0.95], level: tokenColumn(fromToken).level } : tokenColumn(fromToken)) : null;
   const columns = from ? [from, tokenColumn(token)] : null;
   const heights = columns ? columns[0].heights : [null];
 

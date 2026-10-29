@@ -7,7 +7,7 @@
       "FIELDS": {
         "kind": {
           "label": "Kind",
-          "hint": "A solid block stops movement and line of effect, and can be stood on. Liquid softens falls. A pit drops the ground to the region's bottom. Difficult and damaging terrain apply within the region's elevation, to fliers too."
+          "hint": "A solid block stops line of effect and can be stood on. A pit drops the ground to the region's bottom. Modules that handle movement can add more kinds."
         },
         "damage": {
           "label": "Damage",
