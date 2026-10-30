@@ -20,6 +20,16 @@ export const WALL_RESTRICTION_DEFAULTS = {
   metal: { move: 20, sight: 10, light: 20, sound: 0 },
 };
 
+export function wrapMethod(path, fn, type = 'WRAPPER') {
+  if (globalThis.libWrapper) return void libWrapper.register('draw-steel-ctlib', path, fn, type);
+  const keys = path.split('.');
+  const name = keys.pop();
+  const owner = keys.reduce((o, k) => o?.[k], globalThis);
+  const original = owner?.[name];
+  if (typeof original !== 'function') return;
+  owner[name] = function (...args) { return fn.call(this, original.bind(this), ...args); };
+}
+
 config.define('enforceAbilityRange', true);
 config.define('gmBypassRangeEnforcement', false);
 config.define('loeCornerMode', 'normal');

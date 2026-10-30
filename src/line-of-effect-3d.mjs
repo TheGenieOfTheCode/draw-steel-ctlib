@@ -1,5 +1,5 @@
 import { SceneGrid, SceneTerrain, wallHeight, coverWallHeight, solidTerrainRegions } from './terrain.mjs';
-import { loeCornerInsets } from './helpers.mjs';
+import { loeCornerInsets, wrapMethod } from './helpers.mjs';
 import * as config from './config.mjs';
 
 config.define('lineOfEffect3d', true);
@@ -71,24 +71,20 @@ export function opposite3d(a, target, b) {
 
 export function registerFlanking3d() {
   const proto = CONFIG.Token.objectClass?.prototype;
-  const adjacent = proto?.isAdjacentTo;
-  const opposite = proto?.onOppositeSideOrCorner;
-  if (typeof adjacent !== 'function' || typeof opposite !== 'function') return;
+  if (typeof proto?.isAdjacentTo !== 'function' || typeof proto?.onOppositeSideOrCorner !== 'function') return;
   const on = () => config.get('flanking3d') !== false && lineOfEffect3dOn();
-  proto.isAdjacentTo = function (target) {
-    return on() ? adjacent3d(this, target) : adjacent.call(this, target);
-  };
-  proto.onOppositeSideOrCorner = function (target, ally) {
-    return on() ? opposite3d(this, target, ally) : opposite.call(this, target, ally);
-  };
+  wrapMethod('CONFIG.Token.objectClass.prototype.isAdjacentTo', function (wrapped, target) {
+    return on() ? adjacent3d(this, target) : wrapped(target);
+  }, 'MIXED');
+  wrapMethod('CONFIG.Token.objectClass.prototype.onOppositeSideOrCorner', function (wrapped, target, ally) {
+    return on() ? opposite3d(this, target, ally) : wrapped(target, ally);
+  }, 'MIXED');
 }
 
 export function registerWallHeightMovement() {
-  const Backend = CONFIG.Canvas?.polygonBackends?.move;
-  const original = Backend?.prototype?._testEdgeInclusion;
-  if (!original) return;
-  const test = function (wrapped, edge, edgeTypes) {
-    if (!wrapped.call(this, edge, edgeTypes)) return false;
+  if (typeof CONFIG.Canvas?.polygonBackends?.move?.prototype?._testEdgeInclusion !== 'function') return;
+  wrapMethod('CONFIG.Canvas.polygonBackends.move.prototype._testEdgeInclusion', function (wrapped, edge, edgeTypes) {
+    if (!wrapped(edge, edgeTypes)) return false;
     if (this.config?.type !== 'move' || config.get('wallHeightMovement') === false) return true;
     const wall = edge.object?.documentName === 'Wall' ? edge.object : (edge.object?.document?.documentName === 'Wall' ? edge.object.document : null);
     const token = this.config.source?.object?.document;
@@ -101,13 +97,7 @@ export function registerWallHeightMovement() {
     const feet = (elevation - ((token.depth ?? 1) * unit) / 2) / unit;
     const { d } = tokenColumn(token);
     return feet < top - EPS && feet + d > bottom + EPS;
-  };
-  if (globalThis.libWrapper) {
-    libWrapper.register('draw-steel-ctlib', 'CONFIG.Canvas.polygonBackends.move.prototype._testEdgeInclusion',
-      function (wrapped, edge, edgeTypes) { return test.call(this, wrapped, edge, edgeTypes); }, 'WRAPPER');
-  } else {
-    Backend.prototype._testEdgeInclusion = function (edge, edgeTypes) { return test.call(this, original, edge, edgeTypes); };
-  }
+  });
 }
 
 export function tokenColumn(token) {

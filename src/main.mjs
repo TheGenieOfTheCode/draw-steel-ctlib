@@ -1,5 +1,5 @@
 import * as ctlib from './api.mjs';
-import { reviveDropKeys, initPalette } from './helpers.mjs';
+import { reviveDropKeys, initPalette, wrapMethod } from './helpers.mjs';
 import { setSocket } from './socket.mjs';
 import './notices.mjs';
 import './blocked-modules.mjs';
@@ -51,11 +51,10 @@ Hooks.once('init', () => {
 Hooks.once('setup', () => {
   registerWallHeightMovement();
   registerFlanking3d();
-  const proto = CONFIG.Token.objectClass?.prototype;
-  if (typeof proto?.hasLineOfEffect !== 'function') return;
-  proto.hasLineOfEffect = function (target) {
+  if (typeof CONFIG.Token.objectClass?.prototype?.hasLineOfEffect !== 'function') return;
+  wrapMethod('CONFIG.Token.objectClass.prototype.hasLineOfEffect', function (wrapped, target) {
     return ctlib.hasSightToToken(this, target);
-  };
+  }, 'MIXED');
 });
 
 Hooks.on('canvasReady', () => { document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()); });
