@@ -9,6 +9,12 @@
       "setting": { "menu": "draw-steel-combat-tools.abilityAutomationSettings", "key": "abilityTemplateCleanup" }
     },
     {
+      "id": "ct-neutral-not-enemy",
+      "module": "draw-steel-combat-tools",
+      "match": [["bane", "edge", "enemy", "enemies"], ["ranged", "adjacent", "next to", "neutral", "flank"]],
+      "text": "Combat Tools only counts a token as an enemy when its disposition is the opposite of yours, so a Neutral or Secret monster next to you gives no bane on a ranged strike. Targeting arrows show it: yellow means Neutral. Set the token, or its Prototype Token, to Hostile."
+    },
+    {
       "id": "dt-pulse-never-dies",
       "module": "draw-steel-death-tracker",
       "match": [["flash", "red", "puls", "glow"], ["minion", "squad", "die", "dying", "dead", "death"]],
