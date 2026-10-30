@@ -31,13 +31,31 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   display: none !important;
 }
 
-#dsct-picker-topbar button.dsct-picker-uitoggle.dsct-active {
-  border-color: var(--dsct-accent, #7a50c0);
-  background: rgba(122, 80, 192, 0.25);
-  color: var(--dsct-text-active, #c0a8e8);
+#dsct-picker-topbar button.dsct-active,
+#dsct-picker-topbar button.dsct-active:hover {
+  background: var(--color-warm-2);
+  border-color: var(--button-hover-border-color);
+  color: var(--button-hover-text-color);
 }
 
 #dsct-picker-topbar {
+  --bar-background: var(--color-cool-5-90);
+  --bar-border: var(--color-cool-4);
+  --bar-hint: var(--color-light-5);
+  --bar-rule: var(--color-light-6);
+  --bar-chip-bg: var(--color-cool-5-50);
+  --bar-chip-border: var(--color-light-5);
+  --bar-chip-fg: var(--color-light-3);
+  --bar-ok-border: #3f7a4a;
+  --bar-ok-bg: rgba(70, 160, 90, 0.22);
+  --bar-ok-fg: #8fdca0;
+  --bar-ok-ready-fg: #c8ffd6;
+  --bar-no-border: #7a3f3f;
+  --bar-no-bg: rgba(180, 80, 80, 0.18);
+  --bar-no-fg: #dc9a8f;
+  --bar-suggest-fg: #f0d060;
+  --bar-suggest-hover: #ffe28a;
+  --bar-warn-fg: #ffaa44;
   position: fixed;
   top: 0;
   left: 50%;
@@ -48,23 +66,45 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
-  background: var(--dsct-bg, #0e0c14);
-  color: var(--dsct-text-active, #c0a8e8);
+  background: var(--bar-background);
+  color: var(--color-text-primary);
   padding: 8px 18px 10px;
-  border-radius: 0 0 10px 10px;
-  border: 1px solid var(--dsct-border-outer, #4a3870);
+  border-radius: 0 0 8px 8px;
+  border: 1px solid var(--bar-border);
   border-top: none;
   box-shadow: 0 4px 12px #0006;
+  backdrop-filter: blur(4px);
+  font-family: var(--font-body);
   font-size: 14px;
   pointer-events: auto;
 }
 
+body.theme-light #dsct-picker-topbar {
+  --bar-background: url("../../../ui/parchment.jpg") repeat;
+  --bar-hint: var(--color-dark-4);
+  --bar-rule: var(--color-light-2);
+  --bar-chip-bg: rgba(0 0 0 / 10%);
+  --bar-chip-border: var(--color-dark-5);
+  --bar-chip-fg: var(--color-dark-1);
+  --bar-ok-border: #3f7a4a;
+  --bar-ok-bg: rgba(70, 160, 90, 0.18);
+  --bar-ok-fg: #1d6a33;
+  --bar-ok-ready-fg: #0d4f22;
+  --bar-no-border: #b0574d;
+  --bar-no-bg: rgba(180, 80, 80, 0.14);
+  --bar-no-fg: #9a2f22;
+  --bar-suggest-fg: #6e5200;
+  --bar-suggest-hover: #4f3b00;
+  --bar-warn-fg: #a35400;
+  color: var(--color-dark-1);
+}
+
 #dsct-picker-topbar .dsct-picker-title {
-  font-size: 12px;
+  font-size: var(--font-size-12, 12px);
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--dsct-accent, #a98ae0);
+  letter-spacing: 0.06em;
+  color: var(--bar-hint);
   white-space: nowrap;
 }
 
@@ -75,12 +115,13 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 }
 
 #dsct-picker-topbar .dsct-picker-status.dsct-warn {
-  color: var(--dsct-warn-fg, #ffaa44);
+  color: var(--bar-warn-fg);
   font-weight: bold;
 }
 
 #dsct-picker-topbar .dsct-picker-btns {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -119,18 +160,23 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 
 #dsct-picker-topbar button {
   width: auto;
+  height: auto;
+  min-height: 0;
   padding: 3px 10px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 5px;
-  border: 1px solid var(--dsct-border-outer, #4a3870);
-  background: var(--dsct-border, #2a2040);
-  color: var(--dsct-text-active, #c0a8e8);
+  border-radius: 4px;
+  border: 1px solid var(--button-border-color);
+  background: var(--button-background-color);
+  color: var(--button-text-color);
+  font-family: inherit;
   cursor: pointer;
 }
 
 #dsct-picker-topbar button:hover {
-  filter: brightness(1.25);
+  background: var(--button-hover-background-color);
+  border-color: var(--button-hover-border-color);
+  color: var(--button-hover-text-color);
   box-shadow: none;
 }
 
@@ -143,9 +189,9 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 1px solid var(--dsct-border-outer, #4a3870);
-  background: var(--dsct-border, #2a2040);
-  color: var(--dsct-text-active, #c0a8e8);
+  border: 1px solid var(--bar-chip-border);
+  background: var(--bar-chip-bg);
+  color: var(--bar-chip-fg);
   font-size: 12px;
   font-weight: bold;
   cursor: help;
@@ -153,7 +199,8 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 
 #dsct-picker-topbar .dsct-picker-help:hover,
 #dsct-picker-topbar .dsct-picker-help:focus-visible {
-  filter: brightness(1.25);
+  background: var(--color-warm-2);
+  color: var(--color-light-1);
 }
 
 #dsct-picker-topbar .dsct-btns-grid .dsct-picker-help {
@@ -212,9 +259,9 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 }
 
 #dsct-picker-topbar button.dsct-picker-confirm {
-  border-color: #3f7a4a;
-  background: rgba(70, 160, 90, 0.22);
-  color: var(--dsct-ok-fg, #8fdca0);
+  border-color: var(--bar-ok-border);
+  background: var(--bar-ok-bg);
+  color: var(--bar-ok-fg);
 }
 
 #dsct-picker-topbar.dsct-ready {
@@ -225,7 +272,7 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 #dsct-picker-topbar.dsct-ready button.dsct-picker-confirm {
   border-color: #35d06a;
   background: rgba(70, 190, 100, 0.4);
-  color: var(--dsct-ok-ready-fg, #c8ffd6);
+  color: var(--bar-ok-ready-fg);
   animation: dsct-picker-ready-pulse 1.1s ease-in-out infinite;
 }
 
@@ -248,19 +295,24 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
 }
 
 #dsct-picker-topbar button.dsct-picker-cancel {
-  border-color: var(--dsct-no-border, #7a3f3f);
-  background: rgba(180, 80, 80, 0.18);
-  color: var(--dsct-no-fg, #dc9a8f);
+  border-color: var(--bar-no-border);
+  background: var(--bar-no-bg);
+  color: var(--bar-no-fg);
 }
 
 #dsct-picker-topbar button.dsct-picker-suggest {
   border-color: #a8862a;
   background: rgba(217, 166, 63, 0.2);
-  color: var(--dsct-suggest-fg, #f0d060);
+  color: var(--bar-suggest-fg);
 }
 #dsct-picker-topbar button.dsct-picker-suggest:hover {
   background: rgba(217, 166, 63, 0.35);
-  color: var(--dsct-suggest-hover, #ffe28a);
+  color: var(--bar-suggest-hover);
+}
+
+#dsct-picker-topbar button.dsct-picker-confirm:hover,
+#dsct-picker-topbar button.dsct-picker-cancel:hover {
+  filter: brightness(1.15);
 }
 
 #dsct-picker-topbar .dsct-picker-detail {
@@ -270,7 +322,7 @@ body.dsct-prominent-picker > *:not(#board):not(#dsct-picker-topbar):not(#tooltip
   opacity: 0.75;
   margin-top: 2px;
   padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--bar-rule);
 }
 
 #dsct-picker-topbar button kbd {
