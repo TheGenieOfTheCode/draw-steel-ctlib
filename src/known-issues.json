@@ -12,7 +12,15 @@
       "id": "ct-neutral-not-enemy",
       "module": "draw-steel-combat-tools",
       "match": [["bane", "edge", "enemy", "enemies"], ["ranged", "adjacent", "next to", "neutral", "flank"]],
-      "text": "Combat Tools only counts a token as an enemy when its disposition is the opposite of yours, so a Neutral or Secret monster next to you gives no bane on a ranged strike. Targeting arrows show it: yellow means Neutral. Set the token, or its Prototype Token, to Hostile."
+      "text": "Combat Tools only counts a token as an enemy when its disposition is the opposite of yours, so a Neutral or Secret monster next to you gives no bane on a ranged strike. Targeting arrows show it: yellow means Neutral. Set the token, or its Prototype Token, to Hostile. Combat Tools 1.2.8 can do it for you: Engaging in Hostilities turns neutral NPCs Hostile when combat starts.",
+      "setting": { "key": "neutralFoesHostile", "module": "draw-steel-combat-tools" }
+    },
+    {
+      "id": "ct-squad-label-started",
+      "module": "draw-steel-combat-tools",
+      "match": [["squad", "label", "captain"], ["error", "console", "started", "null"]],
+      "text": "A console error from squad labels, \"Cannot read properties of null (reading 'started')\", when a combat ended or changed while labels were being applied, was fixed in Combat Tools 1.2.8. It was harmless: the labels still applied. Update it from Foundry's setup screen.",
+      "fixedIn": "1.2.8"
     },
     {
       "id": "dt-pulse-never-dies",
