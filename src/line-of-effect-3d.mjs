@@ -87,8 +87,8 @@ export function registerWallHeightMovement() {
   const Backend = CONFIG.Canvas?.polygonBackends?.move;
   const original = Backend?.prototype?._testEdgeInclusion;
   if (!original) return;
-  Backend.prototype._testEdgeInclusion = function (edge, edgeTypes) {
-    if (!original.call(this, edge, edgeTypes)) return false;
+  const test = function (wrapped, edge, edgeTypes) {
+    if (!wrapped.call(this, edge, edgeTypes)) return false;
     if (this.config?.type !== 'move' || config.get('wallHeightMovement') === false) return true;
     const wall = edge.object?.documentName === 'Wall' ? edge.object : (edge.object?.document?.documentName === 'Wall' ? edge.object.document : null);
     const token = this.config.source?.object?.document;
@@ -102,6 +102,12 @@ export function registerWallHeightMovement() {
     const { d } = tokenColumn(token);
     return feet < top - EPS && feet + d > bottom + EPS;
   };
+  if (globalThis.libWrapper) {
+    libWrapper.register('draw-steel-ctlib', 'CONFIG.Canvas.polygonBackends.move.prototype._testEdgeInclusion',
+      function (wrapped, edge, edgeTypes) { return test.call(this, wrapped, edge, edgeTypes); }, 'WRAPPER');
+  } else {
+    Backend.prototype._testEdgeInclusion = function (edge, edgeTypes) { return test.call(this, original, edge, edgeTypes); };
+  }
 }
 
 export function tokenColumn(token) {
