@@ -19,6 +19,9 @@
     "coverImmunity": {
       "name": "Covered by {name}"
     },
+    "apply": {
+      "noDirector": "No Director is connected to apply this for you."
+    },
     "settings": {
       "debugHeader": "Debug Settings",
       "active": "Active",
@@ -28,6 +31,10 @@
       "save": "Save Changes",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world.",
+      "playerApply": {
+        "name": "Players Apply Through the Director",
+        "hint": "Players can press the apply buttons on their own ability cards for creatures they do not own. The Director's machine makes the change."
+      },
       "primaryDirector": {
         "name": "Primary Director",
         "hint": "The Director whose machine runs the automation for every Draw Steel module, from deaths to the trigger stack and changes made for players. The first Director to load claims it."

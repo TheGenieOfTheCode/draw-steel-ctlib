@@ -5,6 +5,9 @@ import './notices.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
+import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
+import { registerResultMenu } from './result-menu.mjs';
+import { registerJournal } from './journal.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -16,12 +19,16 @@ Hooks.once('socketlib.ready', () => {
   socket.register('ctlib.deleteDocument',     async (uuid, options = {}) => { const doc = await fromUuid(uuid); if (doc) return await doc.delete(options); });
   socket.register('ctlib.createEmbedded',     async (parentUuid, type, data) => { const parent = await fromUuid(parentUuid); if (parent) return await parent.createEmbeddedDocuments(type, data); });
   socket.register('ctlib.toggleStatusEffect', async (uuid, effectId, options) => { const actor = await fromUuid(uuid); if (actor) return await actor.toggleStatusEffect(effectId, options); });
+  socket.register('ctlib.relayTargetResult',  relayTargetResult);
   setSocket(socket);
 });
 
 Hooks.once('init', () => {
   game.modules.get(MODULE_ID).api = ctlib;
   registerPrimaryDirector();
+  registerApplyHooks();
+  registerJournal();
+  registerResultMenu();
   registerStatusPalette();
   registerMigration();
   initPalette();
