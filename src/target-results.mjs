@@ -50,6 +50,7 @@ export async function addTargetResult(message, token, { rolls = null, tier = nul
   const doc = token?.document ?? token;
   const actor = doc?.actor;
   if (!message || !doc?.uuid || !actor) return null;
+  if (!globalThis.ds?.CONFIG?.MessagePart?.targetResult) return null;
   const all = parts(message);
   if (all.some((p) => p.type === 'targetResult' && (p.tokenUuid === doc.uuid || p.targetUuid === actor.uuid))) return null;
   const template = all.find((p) => p.type === 'targetResult') ?? all.find((p) => p.type === 'abilityResult');
