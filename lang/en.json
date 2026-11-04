@@ -106,7 +106,7 @@
       "reloadTooltip": "This one only takes full effect once you reload the world.",
       "playerApply": {
         "name": "Players Apply Through the Director",
-        "hint": "Players can press the apply buttons on their own ability cards for creatures they do not own. The Director's machine makes the change."
+        "hint": "Players can press the apply buttons on their own ability chat messages for creatures they do not own. The Director's machine makes the change."
       },
       "primaryDirector": {
         "name": "Primary Director",
@@ -138,6 +138,14 @@
         "missing": "it needs the module {module}, which isn't installed.",
         "fix": "Update or install these from Foundry's Setup screen (Add-on Modules, then Update All), then turn {modules} on in Manage Modules.",
         "toast": "Can't turn on: {modules}. CTLib explains what's missing in chat."
+      },
+      "targetDamage": {
+        "title": "Draw Steel: Target Damage is on",
+        "body": "Draw Steel 1.2 gives every target its own section in ability chat messages, so Target Damage isn't needed here and isn't recommended. While it's on, Combat Tools' modifiers in those sections stay off. Turning it off reloads the world for everyone.",
+        "turnOff": "Turn Off Target Damage",
+        "keep": "Keep It On",
+        "kept": "Target Damage stays on. CTLib won't remind you again.",
+        "needed": "{modules} needs Draw Steel: Target Damage, so it stays on."
       }
     },
     "bugReport": {

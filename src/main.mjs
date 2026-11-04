@@ -3,6 +3,7 @@ import { reviveDropKeys, initPalette, wrapMethod } from './helpers.mjs';
 import { setSocket } from './socket.mjs';
 import './notices.mjs';
 import './blocked-modules.mjs';
+import './target-damage-notice.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
