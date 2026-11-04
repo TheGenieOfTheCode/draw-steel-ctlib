@@ -1,13 +1,19 @@
 import * as ctlib from './api.mjs';
-import { reviveDropKeys, initPalette } from './helpers.mjs';
+import { reviveDropKeys, initPalette, wrapMethod } from './helpers.mjs';
 import { setSocket } from './socket.mjs';
 import './notices.mjs';
+import './blocked-modules.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
 import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
 import { registerResultMenu } from './result-menu.mjs';
 import { registerJournal } from './journal.mjs';
+import { registerCgmpGuard } from './cgmp.mjs';
+import { registerRichTips } from './rich-tips.mjs';
+import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
+import { registerWallHeightMovement, registerFlanking3d } from './line-of-effect-3d.mjs';
+import { registerActions, writeHandler as writeActions } from './actions.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -20,6 +26,9 @@ Hooks.once('socketlib.ready', () => {
   socket.register('ctlib.createEmbedded',     async (parentUuid, type, data) => { const parent = await fromUuid(parentUuid); if (parent) return await parent.createEmbeddedDocuments(type, data); });
   socket.register('ctlib.toggleStatusEffect', async (uuid, effectId, options) => { const actor = await fromUuid(uuid); if (actor) return await actor.toggleStatusEffect(effectId, options); });
   socket.register('ctlib.relayTargetResult',  relayTargetResult);
+  socket.register('ctlib.addTags',            async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.addTags(doc, tags); });
+  socket.register('ctlib.removeTags',         async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.removeTags(doc, tags); });
+  socket.register('ctlib.actions.write',      writeActions);
   setSocket(socket);
 });
 
@@ -31,6 +40,28 @@ Hooks.once('init', () => {
   registerResultMenu();
   registerStatusPalette();
   registerMigration();
+  registerCgmpGuard();
+  registerRichTips();
+  registerTerrainBehavior();
+  registerPitRendering();
+  registerActions();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
+  ctlib.registerSettingsLayout(MODULE_ID, [], {
+    wiki: {
+      base: 'https://github.com/TheGenieOfTheCode/draw-steel-ctlib/wiki/',
+      pages: { bugReportChatButton: 'Bug-Reports', primaryDirector: 'Permission-Safe-Writes#the-primary-director' },
+    },
+  });
 });
+
+Hooks.once('setup', () => {
+  registerWallHeightMovement();
+  registerFlanking3d();
+  if (typeof CONFIG.Token.objectClass?.prototype?.hasLineOfEffect !== 'function') return;
+  wrapMethod('CONFIG.Token.objectClass.prototype.hasLineOfEffect', function (wrapped, target) {
+    return ctlib.hasSightToToken(this, target);
+  }, 'MIXED');
+});
+
+Hooks.on('canvasReady', () => { document.body.classList.toggle('ctlib-reduced-effects', ctlib.reducedEffects()); });

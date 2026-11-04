@@ -18,7 +18,43 @@ export function hitToken(pos, candidates) {
   }) ?? null;
 }
 
-export function getValidTargets(casterToken, targetType, range, { excludeSelf = false, checkLOS = false, respectHidden = false, shift = null } = {}) {
+export function openingPath(casterToken, targetToken, range) {
+  const g = canvas.grid.size;
+  const reach = Number(range) > 0 ? Number(range) : 10;
+  const cellOf = (t) => ({ i: Math.round(t.document.y / g), j: Math.round(t.document.x / g) });
+  const start = cellOf(casterToken);
+  const goal = cellOf(targetToken);
+  const goals = new Set();
+  for (let di = 0; di < (targetToken.document.height || 1); di++)
+    for (let dj = 0; dj < (targetToken.document.width || 1); dj++) goals.add(`${goal.i + di},${goal.j + dj}`);
+  const center = (c) => ({ x: (c.j + 0.5) * g, y: (c.i + 0.5) * g });
+  const backend = CONFIG.Canvas.polygonBackends?.move;
+  const blocked = (a, b) => !!backend?.testCollision(center(a), center(b), { type: 'move', mode: 'any' });
+  const prev = new Map([[`${start.i},${start.j}`, null]]);
+  let frontier = [start];
+  for (let step = 0; step < reach && frontier.length; step++) {
+    const next = [];
+    for (const c of frontier) {
+      for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+        if (!di && !dj) continue;
+        const n = { i: c.i + di, j: c.j + dj };
+        const k = `${n.i},${n.j}`;
+        if (prev.has(k) || blocked(c, n)) continue;
+        prev.set(k, c);
+        if (goals.has(k)) {
+          const path = [n];
+          for (let p = c; p; p = prev.get(`${p.i},${p.j}`)) path.unshift(p);
+          return path;
+        }
+        next.push(n);
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+
+export function getValidTargets(casterToken, targetType, range, { excludeSelf = false, checkLOS = false, respectHidden = false, shift = null, opening = false } = {}) {
   const CGD      = canvas.grid.distance;
   const hasRange = range > 0 && !isNaN(range);
   const cDisp    = casterToken.document.disposition;
@@ -49,7 +85,7 @@ export function getValidTargets(casterToken, targetType, range, { excludeSelf = 
     if (!valid) return false;
 
     
-    if (checkLOS && !isSelf(t) && !_hasAnySightTo(casterToken, t, shift)) return false;
+    if (checkLOS && !isSelf(t) && !_hasAnySightTo(casterToken, t, shift) && !(opening && openingPath(casterToken, t, range))) return false;
     if (!isSelf(t) && burrowBlocksLineOfEffect(casterToken, t)) return false;
 
     
@@ -74,8 +110,9 @@ const _brightenHex = (hex) => {
   return (r << 16) | (g << 8) | b;
 };
 
-export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint, title, arrowColor, autoPick = false, control = false }) {
+export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint, title, arrowColor, autoPick = false, control = false, preselect = null }) {
   if (!tokens.length) return null;
+  if (preselect && !tokens.includes(preselect)) preselect = null;
   if (autoPick && tokens.length === 1) {
     if (control) tokens[0].control();
     return tokens[0];
@@ -106,15 +143,26 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
     }
   };
 
-  drawHighlights();
+  const arrowFor = (t) => (arrowColor ? arrowColor(t) : _cssHexToNum(colorMap.get(t.id) ?? '#ffffff'));
+  drawHighlights(preselect?.id ?? null);
+  if (preselect) setPickerArrow(preselect, arrowFor(preselect));
 
   return new Promise(resolve => {
+    const pick = (token) => {
+      cleanup();
+      if (control) token.control();
+      resolve(token);
+    };
     const overlay = beginPickerOverlay({
       title: title ?? game.i18n.localize('CTLIB.picker.titleSource'),
       status: hint ?? '',
       tokens,
-      showConfirm: false,
+      showConfirm: !!preselect,
+      onConfirm: preselect ? () => pick(preselect) : null,
       onCancel: () => { cleanup(); resolve(null); },
+      controls: [{ input: 'CTLIB.picker.help.click', action: 'CTLIB.picker.help.chooseToken' }],
+      cancelOnRightClick: !!config.get('cancelOnRightClick'),
+      onRightClick: () => { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } },
     });
 
     const cleanup = () => {
@@ -124,7 +172,6 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
       canvas.stage.off('mousedown', onClick);
       canvas.stage.off('mousemove', onMove);
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('contextmenu', onContextMenu);
     };
 
     let hoverId = null;
@@ -134,31 +181,25 @@ export async function runColoredTokenPicker({ tokens, colorMap = new Map(), hint
       const hit    = hitToken(pos, tokens);
       const newId  = hit?.id ?? null;
       if (newId === hoverId) return;
-      if (hoverId) removePickerArrow(canvas.tokens.get(hoverId));
+      if (hoverId && hoverId !== preselect?.id) removePickerArrow(canvas.tokens.get(hoverId));
       hoverId = newId;
-      if (hit) setPickerArrow(hit, arrowColor ? arrowColor(hit) : _cssHexToNum(colorMap.get(hit.id) ?? '#ffffff'));
-      drawHighlights(hoverId);
+      if (hit) setPickerArrow(hit, arrowFor(hit));
+      drawHighlights(hoverId ?? preselect?.id ?? null);
     };
 
     const onClick = (event) => {
-      if (event.data.originalEvent.button === 2) {
-        if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); }
-        return;
-      }
       if (event.data.originalEvent.button !== 0) return;
       const hit = hitToken(event.data.getLocalPosition(canvas.app.stage), tokens);
-      if (!hit) return;
-      cleanup();
-      if (control) hit.control();
-      resolve(hit);
+      if (hit) pick(hit);
     };
 
-    const onKey           = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cleanup(); resolve(null); } };
-    const onContextMenu   = (e) => { e.preventDefault(); if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } };
+    const onKey = (e) => {
+      if (e.key === 'Enter' && preselect) { e.preventDefault(); e.stopPropagation(); pick(preselect); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cleanup(); resolve(null); }
+    };
 
     canvas.stage.on('mousedown', onClick);
     canvas.stage.on('mousemove', onMove);
     document.addEventListener('keydown', onKey);
-    document.addEventListener('contextmenu', onContextMenu);
   });
 }

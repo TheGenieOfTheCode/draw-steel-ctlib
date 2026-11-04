@@ -1,3 +1,5 @@
+import { tipAttrs, tipFrom } from './rich-tips.mjs';
+
 const FACE = 'data-ctlib-face';
 
 export function faceFromToken(tokenDoc, { faded = false, tooltip = null } = {}) {
@@ -43,7 +45,7 @@ export function faceChainHTML(faces, { className = '' } = {}) {
     const wrap = ['ctlib-face-wrap', f.captain ? 'ctlib-face-captain' : '', f.faded ? 'ctlib-face-faded' : ''].filter(Boolean).join(' ');
     const img = ['ctlib-face', f.minion && !f.captain ? 'ctlib-face-minion' : ''].filter(Boolean).join(' ');
     const mark = f.captain ? '<i class="fa-solid fa-helmet-battle ctlib-face-captain-mark" inert></i>' : '';
-    return `<span class="${wrap}" ${FACE}="${esc(f.tokenUuid ?? '')}" data-ctlib-face-name="${esc(f.name)}" data-tooltip="${esc(f.tooltip ?? f.name)}"><img class="${img}" src="${esc(f.src)}" alt="">${mark}</span>`;
+    return `<span class="${wrap}" ${FACE}="${esc(f.tokenUuid ?? '')}" data-ctlib-face-name="${esc(f.name)}" ${tipAttrs(tipFrom('CTLIB.tip.face', { title: f.name, body: f.tooltip && f.tooltip !== f.name ? f.tooltip : undefined }))}><img class="${img}" src="${esc(f.src)}" alt="">${mark}</span>`;
   });
   return `<span class="ctlib-faces ${esc(className)}">${items.join('')}</span>`;
 }

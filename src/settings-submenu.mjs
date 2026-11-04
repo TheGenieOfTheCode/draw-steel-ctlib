@@ -1,11 +1,46 @@
 import { markRequirement } from './module-requirements.mjs';
+import { addWikiLink, wikiUrl } from './wiki-links.mjs';
 
 const debugOn = (id) => !!id && game.settings.settings.has(`${id}.debugMode`) && game.settings.get(id, 'debugMode');
+
+export function innerSettings(type, seen = new Set()) {
+  const id = type.moduleId;
+  if (!id || seen.has(type)) return [];
+  seen.add(type);
+  const keys = [...type.regularKeys, ...(debugOn(id) ? type.debugKeys : [])];
+  return keys.flatMap((k) => {
+    if (k?.opens?.prototype instanceof settingsSubmenu() && !(k.gmOnly && !game.user.isGM)) return innerSettings(k.opens, seen);
+    if (typeof k !== 'string') return [];
+    const def = game.settings.settings.get(`${id}.${k}`);
+    if (!def || (!game.user.isGM && def.scope === 'world')) return [];
+    const name = game.i18n.localize(def.name);
+    return name ? [{ key: k, name, type }] : [];
+  });
+}
+
+export function searchHitChips(nav, found) {
+  nav.replaceChildren(...found.map((s) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = s.name;
+    b.addEventListener('click', () => new s.type({ focusKey: s.key }).render(true));
+    return b;
+  }));
+  nav.hidden = !found.length;
+}
+
+export function searchHitNav() {
+  const nav = document.createElement('nav');
+  nav.className = 'dsct-sub-chips ctlib-search-hits';
+  nav.setAttribute('aria-label', game.i18n.localize('CTLIB.settings.searchInside'));
+  nav.hidden = true;
+  return nav;
+}
 
 let _class = null;
 export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds.applications.api.DSApplication {
   static DEFAULT_OPTIONS = {
-    classes:  ['draw-steel'],
+    classes:  ['draw-steel', 'ctlib-scroll-window'],
     window:   { minimizable: false, resizable: true },
     position: { width: 640, height: 'auto' },
   };
@@ -22,17 +57,33 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
   static get debugKeys()   { return []; }
   static get enableKey()   { return null; }
   static get dependencies() { return {}; }
+  static get requires()     { return {}; }
+  static get intro()        { return null; }
+  static get wiki()         { return null; }
 
   async _prepareContext(_options) {
     const debugMode    = debugOn(this.constructor.moduleId);
     const debugEntries = debugMode ? this.constructor.debugKeys.map(k => this._buildEntry(k)).filter(Boolean) : [];
-    return {
-      items: [
-        ...this._regularItems(),
-        ...(debugEntries.length ? [{ isDebugHeader: true }] : []),
-        ...debugEntries,
-      ],
-    };
+    const items = [
+      ...this._regularItems(),
+      ...(debugEntries.length ? [{ isDebugHeader: true }] : []),
+      ...debugEntries,
+    ].map(i => ({ ...i }));
+    
+    const deps = this.constructor.dependencies ?? {};
+    const chips = [];
+    let sec = -1;
+    for (const item of items) {
+      if (item.isSectionHeader || item.isDebugHeader) {
+        item.secIndex = ++sec;
+        if (item.isSectionHeader) chips.push({ index: sec, label: item.label });
+        continue;
+      }
+      item.sec = sec;
+      item.isSub = !!deps[item.key ?? item.id];
+    }
+    this._nestedMenus = items.filter(i => i.isNestedMenu && i.opens);
+    return { items, chips: chips.length >= 4 ? chips : [], intro: this.constructor.intro };
   }
 
   _regularItems() {
@@ -40,7 +91,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
     const result = [];
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i];
-      if (!e) continue;
+      if (!e || (e.gmOnly && !game.user.isGM)) continue;
       if (e.isSectionHeader) {
         let hasContent = false;
         for (let j = i + 1; j < entries.length; j++) {
@@ -71,6 +122,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       isSelect:       !!def.choices,
       isRange:        !!def.range,
       isNumber:       def.type === Number && !def.range,
+      isText:         def.type === String && !def.choices,
       isEnableToggle: key === this.constructor.enableKey,
       value,
       choices:   def.choices
@@ -89,47 +141,59 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       if (display) input.addEventListener('input', () => { display.textContent = input.value; });
     });
 
+    const id = this.constructor.moduleId;
+    const setGroup = (grp, off) => {
+      grp.classList.toggle('dsct-sub-disabled', off);
+      grp.querySelectorAll('input, select, button').forEach(i => { i.disabled = off; });
+    };
+    
+    const isOn = (key) => {
+      const input = el.querySelector(`[name="${key}"]`);
+      if (input) return input.checked;
+      return game.settings.settings.has(`${id}.${key}`) ? !!game.settings.get(id, key) : true;
+    };
+
     const enableKey = this.constructor.enableKey;
+    const enableInput = enableKey ? el.querySelector(`[name="${enableKey}"]`) : null;
+    const masterOn = () => !enableKey || isOn(enableKey);
     if (enableKey) {
-      const enableInput = el.querySelector(`[name="${enableKey}"]`);
-      if (enableInput) {
-        const syncDisabled = () => {
-          const on = enableInput.checked;
-          el.querySelectorAll('.form-group').forEach(grp => {
-            const first = grp.querySelector('input, select');
-            if (!first || first === enableInput) return;
-            grp.classList.toggle('dsct-sub-disabled', !on);
-            grp.querySelectorAll('input, select').forEach(i => { i.disabled = !on; });
-          });
-        };
-        enableInput.addEventListener('change', syncDisabled);
-        syncDisabled();
-      }
+      const syncDisabled = () => {
+        const on = masterOn();
+        el.querySelectorAll('.dsct-sub-scroll > .form-group').forEach(grp => {
+          if (grp.hasAttribute('data-free') || !grp.querySelector('input, select, button') || (enableInput && grp.contains(enableInput))) return;
+          setGroup(grp, !on);
+        });
+      };
+      enableInput?.addEventListener('change', syncDisabled);
+      syncDisabled();
     }
 
-    
-    
-    const deps = this.constructor.dependencies ?? {};
+    const deps = { ...this.constructor.requires, ...this.constructor.dependencies };
     if (Object.keys(deps).length) {
-      const masterOn = () => !enableKey || (el.querySelector(`[name="${enableKey}"]`)?.checked ?? true);
+      const offOf = (key, seen = new Set()) => {
+        const spec = deps[key];
+        if (!spec || seen.has(key)) return false;
+        seen.add(key);
+        const invert = spec.startsWith('!');
+        const parent = invert ? spec.slice(1) : spec;
+        return (invert ? isOn(parent) : !isOn(parent)) || offOf(parent, seen);
+      };
+      const groupOf = (key) => (el.querySelector(`[name="${key}"]`) ?? el.querySelector(`#${CSS.escape(key)}`))?.closest('.form-group');
       const syncDeps = () => {
-        for (const [child, spec] of Object.entries(deps)) {
-          
-          const invert = spec.startsWith('!');
-          const parent = invert ? spec.slice(1) : spec;
-          const parentInput = el.querySelector(`[name="${parent}"]`);
-          const group = el.querySelector(`[name="${child}"]`)?.closest('.form-group');
-          if (!parentInput || !group) continue;
-          const off = (invert ? parentInput.checked : !parentInput.checked) || !masterOn();
-          group.classList.toggle('dsct-sub-disabled', off);
-          group.querySelectorAll('input, select').forEach(i => { i.disabled = off; });
+        for (const child of Object.keys(deps)) {
+          const group = groupOf(child);
+          if (group) setGroup(group, offOf(child) || !masterOn());
         }
       };
       for (const parent of new Set(Object.values(deps).map(v => v.replace(/^!/, '')))) {
         el.querySelector(`[name="${parent}"]`)?.addEventListener('change', syncDeps);
       }
-      if (enableKey) el.querySelector(`[name="${enableKey}"]`)?.addEventListener('change', syncDeps);
+      enableInput?.addEventListener('change', syncDeps);
       syncDeps();
+    }
+
+    for (const item of this._nestedMenus ?? []) {
+      el.querySelector(`#${CSS.escape(item.id)}`)?.addEventListener('click', () => new item.opens().render(true));
     }
 
     el.querySelectorAll('.dsct-fp-btn').forEach(btn => {
@@ -176,15 +240,108 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       sync();
     });
 
-    const id = this.constructor.moduleId;
     el.querySelectorAll('.form-group [name]').forEach((input) => {
       const def = game.settings.settings.get(`${id}.${input.name}`);
       if (def?.requiresModule) markRequirement(input.closest('.form-group'), null, def);
     });
 
+    const wiki = this.constructor.wiki;
+    for (const [key, page] of Object.entries(wiki?.pages ?? {})) {
+      const header = [...el.querySelectorAll('.dsct-sub-scroll > :is(h3, h4)')].find(h => h.textContent.trim() === key);
+      const row = (el.querySelector(`.dsct-sub-scroll [name="${CSS.escape(key)}"]`) ?? el.querySelector(`#${CSS.escape(key)}`))?.closest('.form-group');
+      addWikiLink(header ?? row?.querySelector(':scope > label'), wikiUrl(wiki.base, page));
+    }
+
+    this._wireSearchAndChips(el);
+    if (this.options.focusKey) this.focusSetting(this.options.focusKey);
+
     el.querySelector('#dsct-sub-save-btn')?.addEventListener('click', async () => {
       await this._doSave();
       this.close();
+    });
+  }
+
+  _wireSearchAndChips(el) {
+    const scroller = el.querySelector('.dsct-sub-scroll');
+    const chips = [...el.querySelectorAll('.dsct-sub-top .dsct-sub-chips button')];
+    const headers = () => [...el.querySelectorAll('.dsct-sub-scroll > [data-sec]:is(h3, h4)')];
+    const chipFor = (sec) => chips.find(b => b.dataset.sec === String(sec));
+    const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    
+    
+    let pinned = null;
+    const top = el.querySelector('.dsct-sub-top');
+    const spy = () => {
+      top?.classList.toggle('dsct-sub-scrolled', scroller.scrollTop > 0);
+      if (!chips.length) return;
+      let on = pinned;
+      if (on === null) for (const h of headers()) if (!h.hidden && h.offsetTop - scroller.offsetTop <= scroller.scrollTop + 8) on = h.dataset.sec;
+      on ??= headers().find(h => !h.hidden)?.dataset.sec;
+      for (const b of chips) b.classList.toggle('dsct-sub-chip-on', b.dataset.sec === on);
+    };
+    const unpin = () => { if (pinned === null) return; pinned = null; spy(); };
+    for (const b of chips) {
+      b.addEventListener('click', () => {
+        const h = el.querySelector(`.dsct-sub-scroll > [data-sec="${b.dataset.sec}"]:is(h3, h4)`);
+        if (!h) return;
+        pinned = b.dataset.sec;
+        scroller.scrollTo({ top: h.offsetTop - scroller.offsetTop - 4, behavior: reduced() ? 'auto' : 'smooth' });
+        spy();
+      });
+    }
+    scroller?.addEventListener('scroll', spy);
+    for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) scroller?.addEventListener(type, unpin, { passive: true });
+
+    const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    const groups = [...el.querySelectorAll('.dsct-sub-scroll > .form-group')];
+    for (const g of groups) g.dataset.search = norm(`${g.querySelector('label')?.textContent} ${g.querySelector('.hint')?.textContent}`);
+    const inside = new Map();
+    for (const item of this._nestedMenus ?? []) {
+      if (!(item.opens.prototype instanceof settingsSubmenu())) continue;
+      const g = el.querySelector(`#${CSS.escape(item.id)}`)?.closest('.form-group');
+      const settings = innerSettings(item.opens).map(s => ({ ...s, search: norm(s.name) }));
+      if (!g || !settings.length) continue;
+      const nav = searchHitNav();
+      g.append(nav);
+      inside.set(g, { settings, nav });
+    }
+    const noMatch = el.querySelector('.dsct-sub-nomatch');
+    el.querySelector('.dsct-sub-search')?.addEventListener('input', (event) => {
+      const words = norm(event.target.value).split(/\s+/).filter(Boolean);
+      const seen = new Set();
+      for (const g of groups) {
+        const nested = inside.get(g);
+        const found = words.length && nested ? nested.settings.filter(s => words.every(w => s.search.includes(w))) : [];
+        if (nested) searchHitChips(nested.nav, found);
+        const hit = words.every(w => g.dataset.search.includes(w)) || found.length > 0;
+        g.hidden = !hit;
+        if (hit) seen.add(g.dataset.sec);
+      }
+      for (const h of headers()) {
+        const any = seen.has(h.dataset.sec);
+        h.hidden = !!words.length && !any;
+        chipFor(h.dataset.sec)?.classList.toggle('dsct-sub-chip-empty', !!words.length && !any);
+      }
+      if (noMatch) noMatch.hidden = !words.length || seen.size > 0;
+      pinned = null;
+      spy();
+      this.setPosition({ height: 'auto' });
+    });
+    spy();
+  }
+
+  
+  focusSetting(key) {
+    const bare = String(key).replace(`${this.constructor.moduleId}.`, '');
+    const group = this.element?.querySelector(`[name="${CSS.escape(bare)}"]`)?.closest('.form-group');
+    const scroller = this.element?.querySelector('.dsct-sub-scroll');
+    if (!group || !scroller) return;
+    requestAnimationFrame(() => {
+      scroller.scrollTop = group.offsetTop - scroller.offsetTop - 12;
+      group.classList.remove('dsct-sub-flash');
+      void group.offsetWidth;
+      group.classList.add('dsct-sub-flash');
     });
   }
 
@@ -215,6 +372,8 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
       if (def.type === Boolean) value = input.checked;
       else if (def.type === Number) value = Number(input.value);
       else value = input.value;
+      
+      if (value === before.get(k)) continue;
       await game.settings.set(id, k, value);
     }
 
@@ -227,7 +386,7 @@ export const settingsSubmenu = () => _class ??= class SettingsSubmenu extends ds
 
 Handlebars.registerPartial('dsctReloadBadge', `
 {{#if needsReload}}
-<span class="dsct-reload-badge" data-tooltip="{{localize 'CTLIB.settings.reloadTooltip'}}">
+<span class="dsct-reload-badge" {{richTip "CTLIB.tip.reload" body=(localize 'CTLIB.settings.reloadTooltip')}}>
   <i class="fas fa-rotate-right"></i> {{localize 'CTLIB.settings.reload'}}
 </span>
 {{/if}}`);

@@ -1,12 +1,58 @@
 {
   "CTLIB": {
+    "terrain": {
+      "label": "Terrain",
+      "kind": { "solid": "Solid Block", "liquid": "Liquid", "pit": "Pit", "difficult": "Difficult Terrain", "damaging": "Damaging Terrain" },
+      "material": { "solid": "Something Solid", "glass": "Glass", "wood": "Wood", "stone": "Stone", "metal": "Metal" },
+      "FIELDS": {
+        "kind": {
+          "label": "Kind",
+          "hint": "A Solid Block stops line of effect and can be stood on. A Pit drops the ground to the region's bottom. Modules that handle movement can add more kinds."
+        },
+        "damage": {
+          "label": "Damage",
+          "hint": "For damaging terrain: damage for each square of it a creature enters."
+        },
+        "damageType": {
+          "label": "Damage Type",
+          "hint": "For damaging terrain: the type of that damage."
+        },
+        "material": {
+          "label": "Material",
+          "hint": "What a Solid Block is made of, so creatures can be hurled through it. Something Solid never breaks."
+        }
+      }
+    },
     "damage": {
       "untyped": "Untyped",
       "healing": "Healing",
       "temporary": "Temporary Stamina"
     },
+    "actions": {
+      "main": "Main action",
+      "maneuver": "Maneuver",
+      "move": "Move action",
+      "triggered": "Triggered action",
+      "free": "unspent",
+      "spent": "spent",
+      "as": { "move": "turned into a move action", "maneuver": "turned into a maneuver" },
+      "category": "Turn Action"
+    },
     "faces": {
       "notOnScene": "{name} is not on this scene."
+    },
+    "tip": {
+      "pillFrom": "From {source}.",
+      "face": { "category": "Creature", "body": "Click to ping it on the map. Shift-click to pull everyone's view to it." },
+      "damageType": { "category": "Damage Type", "body": "Immunity and weakness to {type} change this damage." },
+      "resource": { "category": "Resource" },
+      "requirement": { "category": "Needs a Module" },
+      "bugReport": { "title": "Report a Bug", "category": "CTLib", "body": "Report a bug in a Draw Steel module. It fills in your versions and settings, and points out known fixes as you type." },
+      "toggleUi": { "title": "Interface", "category": "Picker" },
+      "reload": { "title": "Reload", "category": "Setting" },
+      "browseFiles": { "title": "Browse Files", "category": "Setting", "body": "Pick an image from your files." },
+      "wiki": { "title": "Read More", "category": "Wiki", "body": "Opens the {page} page of the wiki, which covers this in more detail." },
+      "iconPreview": { "title": "Current Icon", "category": "Setting", "body": "The image this setting uses now." }
     },
     "picker": {
       "confirm": "Confirm",
@@ -14,7 +60,23 @@
       "toggleUi": "Toggle the rest of the UI",
       "titleSquare": "Pick a Square",
       "chooseLanding": "Choose where {name} lands. Escape to skip.",
-      "titleSource": "Pick a Token"
+      "titleSource": "Pick a Token",
+      "help": {
+        "title": "Controls",
+        "map": "Map",
+        "rightClick": "Right-click",
+        "rightDrag": "Right-drag",
+        "arrows": "Arrow keys",
+        "scroll": "Scroll",
+        "cancel": "Cancel",
+        "pan": "Move the view",
+        "zoom": "Zoom in and out",
+        "click": "Click",
+        "doubleClickEmpty": "Double-click empty map",
+        "chooseToken": "Choose a token",
+        "toggleToken": "Pick or unpick a token",
+        "chooseSquare": "Choose a lit square"
+      }
     },
     "coverImmunity": {
       "name": "Covered by {name}"
@@ -32,6 +94,11 @@
       "browseFiles": "Browse Files",
       "iconPreview": "Current icon preview",
       "save": "Save Changes",
+      "search": "Search this window",
+      "sections": "Sections",
+      "searchNone": "No settings here match that search.",
+      "searchInside": "Matching settings inside this window",
+      "wikiLink": "Open the {page} page of the wiki",
       "reload": "Reload",
       "reloadTooltip": "This one only takes full effect once you reload the world.",
       "playerApply": {
@@ -60,6 +127,14 @@
         "extra": "It fills in your versions and settings for you, and if what you describe is a known setting or an already fixed bug, it tells you as you type. You can hide the chat icon in CTLib's settings.",
         "open": "Open the Bug Report",
         "anyModule": "a Draw Steel module"
+      },
+      "blocked": {
+        "title": "Some Draw Steel modules can't turn on",
+        "cannot": "{module} {version} can't turn on:",
+        "old": "it needs {module} {min} or newer, and this world has {have}.",
+        "missing": "it needs the module {module}, which isn't installed.",
+        "fix": "Update or install these from Foundry's Setup screen (Add-on Modules, then Update All), then turn {modules} on in Manage Modules.",
+        "toast": "Can't turn on: {modules}. CTLib explains what's missing in chat."
       }
     },
     "bugReport": {

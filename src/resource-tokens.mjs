@@ -1,3 +1,4 @@
+import { tipAttrs, tipFrom } from './rich-tips.mjs';
 
 const STYLES = {
   heroic:     { face: ['#e3b8ff', '#a45de0', '#5d2296', '#2e0c55'], sheen: '230,200,255', base: '#120518', notch: '#08020c', ink: '#14041f', rim: 'rays' },
@@ -185,6 +186,6 @@ const esc = (value) => foundry.utils.escapeHTML(String(value ?? ''));
 export function resourceTokenHTML(key, { tooltip = '', className = '' } = {}) {
   const uri = resourceTokenURI(key);
   if (!uri) return '';
-  const tip = tooltip ? ` data-tooltip="${esc(tooltip)}"` : '';
+  const tip = tooltip ? ` ${tipAttrs(tipFrom('CTLIB.tip.resource', { title: tooltip }))}` : '';
   return `<img class="ctlib-res-token ctlib-res-${esc(key)} ${esc(className)}" src="${uri}" alt=""${tip}>`;
 }

@@ -9,6 +9,20 @@
       "setting": { "menu": "draw-steel-combat-tools.abilityAutomationSettings", "key": "abilityTemplateCleanup" }
     },
     {
+      "id": "ct-neutral-not-enemy",
+      "module": "draw-steel-combat-tools",
+      "match": [["bane", "edge", "enemy", "enemies"], ["ranged", "adjacent", "next to", "neutral", "flank"]],
+      "text": "Combat Tools only counts a token as an enemy when its disposition is the opposite of yours, so a Neutral or Secret monster next to you gives no bane on a ranged strike. Targeting arrows show it: yellow means Neutral. Set the token, or its Prototype Token, to Hostile. Combat Tools 1.2.8 can do it for you: Engaging in Hostilities turns neutral NPCs Hostile when combat starts.",
+      "setting": { "key": "neutralFoesHostile", "module": "draw-steel-combat-tools" }
+    },
+    {
+      "id": "ct-squad-label-started",
+      "module": "draw-steel-combat-tools",
+      "match": [["squad", "label", "captain"], ["error", "console", "started", "null"]],
+      "text": "A console error from squad labels, \"Cannot read properties of null (reading 'started')\", when a combat ended or changed while labels were being applied, was fixed in Combat Tools 1.2.8. It was harmless: the labels still applied. Update it from Foundry's setup screen.",
+      "fixedIn": "1.2.8"
+    },
+    {
       "id": "dt-pulse-never-dies",
       "module": "draw-steel-death-tracker",
       "match": [["flash", "red", "puls", "glow"], ["minion", "squad", "die", "dying", "dead", "death"]],
@@ -56,6 +70,47 @@
       "match": [["gain", "essence", "start of turn", "heroic resource", "resource roll"], ["still", "shown", "show", "not hidden", "hide", "visible", "appear"]],
       "text": "A flat start of turn gain, like an Elementalist's 2 Essence, that stayed in chat while rolled gains were hidden behind their log line, was fixed in Battle Log 1.3.0. Update it from Foundry's setup screen.",
       "fixedIn": "1.3.0"
+    },
+    {
+      "id": "bl-dsplus-double-names",
+      "module": "draw-steel-battle-log",
+      "match": [["duplicat", "double", "twice", "two names", "repeat", "copies"], ["chat", "message", "name", "line", "speaker"]],
+      "text": "If you use Draw Steel Plus: it and Battle Log both put the speaker's name on typed chat lines, so every line showed it twice, which can look like doubled messages. Battle Log 1.3.3 shows one name. Update it from Foundry's setup screen.",
+      "fixedIn": "1.3.3"
+    },
+    {
+      "id": "bl-cgmp-commands",
+      "module": "draw-steel-battle-log",
+      "match": [["desc ", "ooc "]],
+      "text": "Battle Log's Speaking As picker overrode Cautious Gamemaster's Pack's /desc and /ooc, so /desc lines read like speech. Battle Log 1.3.3 shows /desc as narration and leaves /as and /ooc as Cautious Gamemaster's Pack sets them. Update it from Foundry's setup screen.",
+      "fixedIn": "1.3.3"
+    },
+    {
+      "id": "bl-cgmp-speakers",
+      "module": "draw-steel-battle-log",
+      "match": [["cautious", "cgmp", "gamemaster's pack", "speaker mode"], ["speaker", "name", "portrait", "who", "card", "wrong"]],
+      "text": "Cautious Gamemaster's Pack's Speaker Mode settings could rename or strip the speaker of Draw Steel chat cards. Draw Steel: CTLib 1.2.2 gives cards their speaker back, alongside Battle Log 1.3.3. Update both from Foundry's setup screen.",
+      "fixedIn": "1.3.3"
+    },
+    {
+      "id": "cgmp-console-errors",
+      "module": "draw-steel-battle-log",
+      "match": [["cautious", "cgmp", "gamemaster's pack", "reading 'message'", "onrenderchatmessage"], ["error", "console", "warning"]],
+      "text": "Console errors that name Cautious Gamemaster's Pack, like \"Cannot read properties of undefined (reading 'message')\", come from that module on Foundry 14. They're harmless: chat cards still show and Battle Log keeps working."
+    },
+    {
+      "id": "bl-polyglot-speaker",
+      "module": "draw-steel-battle-log",
+      "match": [["polyglot", "language", "rune", "scrambl"], ["says", "speaker", "name", "who"]],
+      "text": "With Polyglot, a line spoken in a language lost its \"says:\" line, so you couldn't tell who spoke. Battle Log 1.3.3 keeps it, and shows the runes faintly behind words you understand; click a line to swap them. Update it from Foundry's setup screen.",
+      "fixedIn": "1.3.3"
+    },
+    {
+      "id": "bl-polyglot-leak",
+      "module": "draw-steel-battle-log",
+      "match": [["polyglot", "language"], ["read", "see", "understand", "translat", "plain", "leak", "know"]],
+      "text": "With Polyglot's Display Translations turned off, players could read languages they don't know. That's a Polyglot bug on Foundry 14; Battle Log 1.3.3 covers it until Polyglot's own fix is released. Update Battle Log from Foundry's setup screen, or keep Display Translations on.",
+      "fixedIn": "1.3.3"
     }
   ]
 }

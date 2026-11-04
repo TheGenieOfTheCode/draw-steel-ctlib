@@ -1,7 +1,8 @@
-import { beginPickerOverlay } from './picker-overlay.mjs';
+import { beginPickerOverlay, watchRightClick } from './picker-overlay.mjs';
 import * as config from './config.mjs';
 import { getSocket } from './socket.mjs';
 import { executeAsDirector } from './primary-director.mjs';
+import { lineBlocked3d, lineHits, firstBlock3d, coverWallHit3d, tokenColumn, lineOfEffect3dOn } from './line-of-effect-3d.mjs';
 
 const asDirector = (handler, ...args) => executeAsDirector(getSocket(), handler, ...args);
 
@@ -18,6 +19,16 @@ export const WALL_RESTRICTION_DEFAULTS = {
   stone: { move: 20, sight: 10, light: 20, sound: 0 },
   metal: { move: 20, sight: 10, light: 20, sound: 0 },
 };
+
+export function wrapMethod(path, fn, type = 'WRAPPER') {
+  if (globalThis.libWrapper) return void libWrapper.register('draw-steel-ctlib', path, fn, type);
+  const keys = path.split('.');
+  const name = keys.pop();
+  const owner = keys.reduce((o, k) => o?.[k], globalThis);
+  const original = owner?.[name];
+  if (typeof original !== 'function') return;
+  owner[name] = function (...args) { return fn.call(this, original.bind(this), ...args); };
+}
 
 config.define('enforceAbilityRange', true);
 config.define('gmBypassRangeEnforcement', false);
@@ -54,6 +65,13 @@ const PALETTE_DARK = {
   '--dsct-mimic-label':    '#a088c0',
   '--dsct-animal-label':   '#9a8cc4',
   '--dsct-close-fg':       '#8e80b8',
+  '--dsct-ok-fg':          '#8fdca0',
+  '--dsct-ok-ready-fg':    '#c8ffd6',
+  '--dsct-no-fg':          '#dc9a8f',
+  '--dsct-no-border':      '#7a3f3f',
+  '--dsct-suggest-fg':     '#f0d060',
+  '--dsct-suggest-hover':  '#ffe28a',
+  '--dsct-warn-fg':        '#ffaa44',
 };
 const PALETTE_LIGHT = {
   '--dsct-bg':           '#f0eef8',
@@ -75,6 +93,13 @@ const PALETTE_LIGHT = {
   '--dsct-mimic-label':    '#5a4070',
   '--dsct-animal-label':   '#6a5a8a',
   '--dsct-close-fg':       '#7060a8',
+  '--dsct-ok-fg':          '#1d6a33',
+  '--dsct-ok-ready-fg':    '#0d4f22',
+  '--dsct-no-fg':          '#9a2f22',
+  '--dsct-no-border':      '#b0574d',
+  '--dsct-suggest-fg':     '#6e5200',
+  '--dsct-suggest-hover':  '#4f3b00',
+  '--dsct-warn-fg':        '#a35400',
 };
 
 export const initPalette = () => {
@@ -84,6 +109,13 @@ export const initPalette = () => {
 
 const taggerActive = () => game.modules.get('tagger')?.active;
 
+export const reducedEffects = () => {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true;
+  try {
+    return (canvas?.performance?.mode ?? game.settings.get('core', 'performanceMode')) === CONST.CANVAS_PERFORMANCE_MODES.LOW;
+  } catch { return false; }
+};
+
 export const CTLIB_SCOPE = 'draw-steel-ctlib';
 export const LEGACY_SCOPE = 'draw-steel-combat-tools';
 
@@ -92,13 +124,17 @@ export const ctlibFlag = (doc, key) => doc?.flags?.[CTLIB_SCOPE]?.[key] ?? doc?.
 const _doc  = (obj) => obj?.document ?? obj;
 const _tags = (obj) => ctlibFlag(_doc(obj), 'tags') ?? [];
 
-export const hasTags = (obj, tag) => {
-  if (taggerActive()) return Tagger.hasTags(obj, tag);
-  const tags = _tags(obj);
-  return Array.isArray(tag) ? tag.every(t => tags.includes(t)) : tags.includes(tag);
+export const getTags = (obj) => {
+  if (!taggerActive()) return _tags(obj);
+  const own = _tags(obj);
+  const tagged = Tagger.getTags(obj) ?? [];
+  return own.length ? [...new Set([...tagged, ...own])] : tagged;
 };
 
-export const getTags = (obj) => taggerActive() ? Tagger.getTags(obj) : _tags(obj);
+export const hasTags = (obj, tag) => {
+  const tags = getTags(obj);
+  return Array.isArray(tag) ? tag.every(t => tags.includes(t)) : tags.includes(tag);
+};
 
 const _taggable = () => {
   const scene = canvas.scene;
@@ -106,19 +142,45 @@ const _taggable = () => {
 };
 
 export const getByTag = (tag) => {
-  if (taggerActive()) return Tagger.getByTag(tag, { objects: _taggable() });
-  return _taggable().filter(doc => _tags(doc).includes(tag));
+  const own = _taggable().filter(doc => _tags(doc).includes(tag));
+  if (!taggerActive()) return own;
+  const tagged = Tagger.getByTag(tag, { objects: _taggable() }) ?? [];
+  const ids = new Set(tagged.map(d => (d.document ?? d).id));
+  return [...tagged, ...own.filter(doc => !ids.has(doc.id))];
+};
+
+const _relayTags = (obj) => {
+  const doc = _doc(obj);
+  return !!doc?.uuid && !doc.isOwner;
+};
+
+const _foldIntoTagger = async (obj) => {
+  const doc = _doc(obj);
+  const own = _tags(obj);
+  if (!own.length) return;
+  await Tagger.addTags(obj, own);
+  const unset = {};
+  for (const scope of [CTLIB_SCOPE, LEGACY_SCOPE]) if (doc.flags?.[scope]?.tags) unset[`flags.${scope}.-=tags`] = null;
+  await safeUpdate(doc, unset);
 };
 
 export const addTags = async (obj, tags) => {
-  if (taggerActive()) return Tagger.addTags(obj, tags);
+  if (taggerActive()) {
+    if (_relayTags(obj)) return await asDirector('ctlib.addTags', _doc(obj).uuid, tags);
+    await _foldIntoTagger(obj);
+    return Tagger.addTags(obj, tags);
+  }
   const doc  = _doc(obj);
   const curr = _tags(obj);
   await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: [...new Set([...curr, ...tags])] });
 };
 
 export const removeTags = async (obj, tags) => {
-  if (taggerActive()) return Tagger.removeTags(obj, tags);
+  if (taggerActive()) {
+    if (_relayTags(obj)) return await asDirector('ctlib.removeTags', _doc(obj).uuid, tags);
+    await _foldIntoTagger(obj);
+    return Tagger.removeTags(obj, tags);
+  }
   const doc  = _doc(obj);
   const curr = _tags(obj);
   await safeUpdate(doc, { [`flags.${CTLIB_SCOPE}.tags`]: curr.filter(t => !tags.includes(t)) });
@@ -171,6 +233,8 @@ const cornerInset = () => {
 
 export const cornersAreOutside = () => cornerInset() < 0;
 
+export const loeCornerInsets = () => ({ inset: cornerInset(), back: CORNER_INSETS.restrictive, probe: PROBE });
+
 const PROBE = 0.02;
 
 export const cornersNeedClamping = () => cornerInset() <= 0;
@@ -186,7 +250,7 @@ export const sightSamples = ({ inside = false } = {}) => {
 
 export const SIGHT_SAMPLE_COUNT = 5;
 
-export const clampOutsetPoints = (points, centre) => {
+export const clampOutsetPoints = (points, centre, coverWalls = null) => {
   if (!cornersNeedClamping() || !centre) return points;
 
   const GS = canvas?.grid?.size ?? 100;
@@ -198,7 +262,9 @@ export const clampOutsetPoints = (points, centre) => {
 
   return points.map((p) => {
     if (!p.clamped) return p;
-    return segmentBlocksSight(centre, beyond(p)) ? { ...p, x: p.clamped.x, y: p.clamped.y, pulled: true } : p;
+    const out = beyond(p);
+    const hit = segmentBlocksSight(centre, out) || !!coverWalls?.some((w) => _crossesCoverWall(centre, out, w));
+    return hit ? { ...p, x: p.clamped.x, y: p.clamped.y, pulled: true } : p;
   });
 };
 
@@ -354,6 +420,15 @@ export function wallGrantsCover(wall) {
   return ctlibFlag(doc, 'lowCover') === true;
 }
 
+export const loePullBlocked = (a, b) =>
+  segmentBlocksSight(a, b) || (canvas?.walls?.placeables ?? []).some((w) => wallGrantsCover(w) && _crossesCoverWall(a, b, w));
+
+export function segmentCoverHit3d(a, b) {
+  const unit = canvas.scene.grid.distance || 1;
+  const walls = (canvas?.walls?.placeables ?? []).filter(wallGrantsCover);
+  return coverWallHit3d(a, b, (a.elevation ?? 0) / unit, (b.elevation ?? 0) / unit, walls);
+}
+
 const _wallEnds = (wall) => {
   const c = (wall?.document ?? wall)?.c;
   if (!Array.isArray(c) || c.length < 4) return null;
@@ -411,10 +486,11 @@ export const hasSightToToken = (fromToken, token, opts = {}) => {
   const { origins, targets } = _sightEnds(fromToken, token, opts);
 
   const blockers = [...loeBlockersFor(fromToken, token), ...fullCoverBlockersFor(fromToken, token)];
+  const columns = lineOfEffect3dOn() ? [tokenColumn(fromToken), tokenColumn(token)] : null;
 
   for (const p of targets) {
     for (const origin of origins) {
-      if (segmentBlocksSight(origin, p)) continue;
+      if (columns ? lineBlocked3d(origin, p, ...columns) : segmentBlocksSight(origin, p)) continue;
       if (blockers.some(b => _segCrossesToken(origin, p, b))) continue;
       return true;
     }
@@ -477,9 +553,9 @@ const _spaceRect = (token) => {
   };
 };
 
-const _spaceCorners = (token) => {
+const _spaceCorners = (token, coverWalls = null) => {
   const { x, y, w, h } = _spaceRect(token);
-  return clampOutsetPoints(spaceSamplePoints(x, y, w, h), { x: x + w / 2, y: y + h / 2 }).slice(1);
+  return clampOutsetPoints(spaceSamplePoints(x, y, w, h), { x: x + w / 2, y: y + h / 2 }, coverWalls).slice(1);
 };
 
 const _spaceCentre = (token) => {
@@ -501,21 +577,30 @@ const _formSquares = (token) => {
   return out;
 };
 
-const _rectCorners = (r) =>
-  clampOutsetPoints(spaceSamplePoints(r.x, r.y, r.w, r.h), { x: r.x + r.w / 2, y: r.y + r.h / 2 }).slice(1);
+const _rectCorners = (r, coverWalls = null) =>
+  clampOutsetPoints(spaceSamplePoints(r.x, r.y, r.w, r.h), { x: r.x + r.w / 2, y: r.y + r.h / 2 }, coverWalls).slice(1);
 
-const _blockedSquares = (origin, squares, blockers, cover) => {
+const _blockedSquares = (origin, squares, blockers, cover, vertical = null) => {
   let blocked = 0;
   for (const sq of squares) {
-    const pts = _rectCorners(sq);
+    const pts = _rectCorners(sq, vertical ? cover?.walls : null);
     let seen = 0;
+    let total = 0;
     for (const p of pts) {
-      if (segmentBlocksSight(origin, p)) continue;
-      if (blockers.some(b => _segCrossesToken(origin, p, b))) continue;
-      if (segmentBlockedByCover(origin, p, cover)) continue;
-      seen++;
+      if (!vertical) {
+        total++;
+        if (!blockers.some(b => _segCrossesToken(origin, p, b)) && !segmentBlockedByCover(origin, p, cover) && !segmentBlocksSight(origin, p)) seen++;
+        continue;
+      }
+      const flat = blockers.some(b => _segCrossesToken(origin, p, b)) || !!cover?.tokens.some(t => _segCrossesToken(origin, p, t));
+      const hits = lineHits(origin, p);
+      for (const zb of vertical.heights) {
+        total++;
+        if (flat || coverWallHit3d(origin, p, vertical.za, zb, cover?.walls) !== null) continue;
+        if (firstBlock3d(origin, p, vertical.za, zb, { level: vertical.level, hits }) === null) seen++;
+      }
     }
-    if (atLeastHalfBlocked(seen, pts.length)) blocked++;
+    if (atLeastHalfBlocked(seen, total)) blocked++;
   }
   return blocked;
 };
@@ -640,21 +725,32 @@ export const visibleTargetCorners = (fromToken, token) => {
   return best;
 };
 
-export const hasCover = (fromToken, token) => {
+export const hasCover = (fromToken, token, { origin = null } = {}) => {
   if (!fromToken || !token) return false;
-  if (!hasSightToToken(fromToken, token)) return false;
-  if (loeRangeBlocked(fromToken, token)) return true;
+  if (!origin && !hasSightToToken(fromToken, token)) return false;
+  if (!origin && loeRangeBlocked(fromToken, token)) return true;
 
   const squares  = _formSquares(token);
-  const origins  = config.get('trueDrawSteelLos') ? _spaceCorners(fromToken) : [_spaceCentre(fromToken)];
   const blockers = [...loeBlockersFor(fromToken, token), ...fullCoverBlockersFor(fromToken, token)];
   const cover    = coverObstaclesFor(fromToken, token);
+  const GS       = canvas.grid.size;
+  const cell     = origin ? { x: origin.x * GS, y: origin.y * GS, w: GS, h: GS } : null;
+  const origins  = cell
+    ? (config.get('trueDrawSteelLos') ? _rectCorners(cell, lineOfEffect3dOn() ? cover.walls : null) : [{ x: cell.x + GS / 2, y: cell.y + GS / 2 }])
+    : (config.get('trueDrawSteelLos') ? _spaceCorners(fromToken, lineOfEffect3dOn() ? cover.walls : null) : [_spaceCentre(fromToken)]);
 
-  
+  const oz = Number.isFinite(origin?.z) ? origin.z : ((fromToken.document ?? fromToken).elevation ?? 0) / (canvas.scene?.grid.distance || 1);
+  const from = lineOfEffect3dOn() ? (origin ? { heights: [oz + 0.05, oz + 0.95], level: tokenColumn(fromToken).level } : tokenColumn(fromToken)) : null;
+  const columns = from ? [from, tokenColumn(token)] : null;
+  const heights = columns ? columns[0].heights : [null];
+
   let fewestBlocked = Infinity;
   for (const origin of origins) {
-    const blocked = _blockedSquares(origin, squares, blockers, cover);
-    if (blocked < fewestBlocked) fewestBlocked = blocked;
+    for (const za of heights) {
+      const vertical = columns ? { za, heights: columns[1].heights, level: columns[0].level } : null;
+      const blocked = _blockedSquares(origin, squares, blockers, cover, vertical);
+      if (blocked < fewestBlocked) fewestBlocked = blocked;
+    }
     if (fewestBlocked === 0) break;
   }
 
@@ -821,7 +917,7 @@ export const getMaterial = (obj) => {
 };
 
 export const tokenAt = (gx, gy, excludeId) => canvas.tokens.placeables.find(t => {
-  if (t.id === excludeId) return false;
+  if (t.id === excludeId || t.document.getFlag?.('draw-steel-ctlib', 'notObstacle')) return false;
   const tg   = toGrid(t.document);
   const size = t.actor?.system?.combat?.size?.value ?? t.document.width ?? 1;
   return gx >= tg.x && gx < tg.x + size && gy >= tg.y && gy < tg.y + size;
@@ -898,11 +994,11 @@ export const replayUndo = async (ops) => {
         case 'stamina':
           if (entry.wasDeadBefore) break;
           if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina: actorUuid=${entry.uuid} prevValue=${entry.prevValue} squadGroupUuid=${entry.squadGroupUuid} prevSquadHP=${entry.prevSquadHP} squadTokenIds=${JSON.stringify(entry.squadTokenIds)}`);
-          await safeUpdate(doc, { 'system.stamina.temporary': entry.prevTemp, 'system.stamina.value': entry.prevValue });
+          await safeUpdate(doc, { 'system.stamina.temporary': entry.prevTemp, 'system.stamina.value': entry.prevValue }, { dsblUndo: true });
           if (entry.squadGroupUuid && entry.prevSquadHP !== null) {
             const sg = await fromUuid(entry.squadGroupUuid);
             if (config.get('debugMode')) console.log(`CTLib | HLP | replayUndo stamina squad: sg found=${!!sg} currentStaminaValue=${sg?.system?.staminaValue} prevSquadHP=${entry.prevSquadHP}`);
-            if (sg) await safeUpdate(sg, { 'system.staminaValue': entry.prevSquadHP });
+            if (sg) await safeUpdate(sg, { 'system.staminaValue': entry.prevSquadHP }, { dsblUndo: true });
           }
           break;
       }
@@ -966,9 +1062,9 @@ export const safeToggleStatusEffect = async (actor, effectId, options = {}) => {
 };
 
 export const undoDamage = async (actor, { prevTemp, prevValue, prevSquadHP, squadGroup }) => {
-  await safeUpdate(actor, { 'system.stamina.temporary': prevTemp, 'system.stamina.value': prevValue });
+  await safeUpdate(actor, { 'system.stamina.temporary': prevTemp, 'system.stamina.value': prevValue }, { dsblUndo: true });
   if (squadGroup && prevSquadHP !== null) {
-    await safeUpdate(squadGroup, { 'system.staminaValue': prevSquadHP });
+    await safeUpdate(squadGroup, { 'system.staminaValue': prevSquadHP }, { dsblUndo: true });
   }
 };
 
@@ -1127,6 +1223,7 @@ export const chooseFreeSquare = (targetToken, landedOnToken = null, { forceOnCan
   };
 
   const onClick = (e) => {
+    if (e.data.button !== 0) return;
     const pos    = e.data.getLocalPosition(canvas.app.stage);
     const gpos   = toGrid(pos);
     const chosen = candidates.find(g => g.x === gpos.x && g.y === gpos.y);
@@ -1165,6 +1262,7 @@ export const chooseFreeSquare = (targetToken, landedOnToken = null, { forceOnCan
     holeRects,
     showConfirm: false,
     onCancel: doCancel,
+    controls: [{ input: 'CTLIB.picker.help.click', action: 'CTLIB.picker.help.chooseSquare' }],
   });
 });
 
@@ -1222,10 +1320,17 @@ export const footprintDistFromBounds = (aL, aT, aW, aH, bL, bT, bW, bH) => {
   return canvas.grid.measurePath([{ x: px, y: py }, { x: qx, y: qy }]).distance;
 };
 
-export const tokFootprintDist = (tokA, tokB) => footprintDistFromBounds(
-  tokA.document.x, tokA.document.y, tokA.document.width, tokA.document.height,
-  tokB.document.x, tokB.document.y, tokB.document.width, tokB.document.height,
-);
+export const tokFootprintDist = (tokA, tokB) => {
+  const flat = footprintDistFromBounds(
+    tokA.document.x, tokA.document.y, tokA.document.width, tokA.document.height,
+    tokB.document.x, tokB.document.y, tokB.document.width, tokB.document.height,
+  );
+  if (config.get('range3d') === false || !canvas?.scene) return flat;
+  const a = tokenColumn(tokA);
+  const b = tokenColumn(tokB);
+  const gap = Math.max(0, b.z - (a.z + a.d), a.z - (b.z + b.d));
+  return Math.max(flat, gap * (canvas.grid.distance || 1));
+};
 
 export const getWallBlockTileAt = (gx, gy) => {
   return canvas.tiles.placeables.find(t => {
@@ -1303,7 +1408,7 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
     overlay.off('pointermove', onMove);
     overlay.off('pointerdown', onClick);
     document.removeEventListener('keydown', onKeyDown);
-    document.removeEventListener('contextmenu', onContextMenu);
+    stopRightClick();
     canvas.app.stage.removeChild(overlay);
     canvas.app.stage.removeChild(graphics);
     graphics.destroy();
@@ -1316,7 +1421,7 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
   };
 
   const onClick = (e) => {
-    if (e.data.button === 2) { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } return; }
+    if (e.data.button !== 0) return;
     const result = hitTest(e.data.getLocalPosition(canvas.app.stage));
     if (result == null) return;
     cleanup();
@@ -1324,12 +1429,11 @@ export const pickCanvasTarget = ({ draw, hitTest, hint }) => new Promise((resolv
   };
 
   const onKeyDown = (e) => { if (e.key === 'Escape') { cleanup(); resolve(null); } };
-  const onContextMenu = (e) => { e.preventDefault(); };
 
   overlay.on('pointermove', onMove);
   overlay.on('pointerdown', onClick);
   document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('contextmenu', onContextMenu);
+  const stopRightClick = watchRightClick(() => { if (config.get('cancelOnRightClick')) { cleanup(); resolve(null); } });
   redraw();
   if (hint) ui.notifications.info(hint);
 });

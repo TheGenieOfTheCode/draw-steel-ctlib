@@ -1,14 +1,19 @@
 export * as config from './config.mjs';
 export * as services from './services.mjs';
+export * as actions from './actions.mjs';
 export * from './token-preview.mjs';
 export * from './picker-overlay.mjs';
+export { TIP_CLASS, richTip, tipFrom, setTip, tipAttrs, pillTip, richifyTooltips, textTip } from './rich-tips.mjs';
 export * from './helpers.mjs';
 export { settingsSubmenu } from './settings-submenu.mjs';
+export { registerSettingsLayout } from './settings-layout.mjs';
+export { wikiUrl, wikiLink, addWikiLink } from './wiki-links.mjs';
+import './settings-search.mjs';
 export { primaryGM, isPrimaryGM, executeAsDirector } from './primary-director.mjs';
 export * from './dstd-panel.mjs';
 export { registerStatusGroup, groupStatuses } from './status-palette.mjs';
 export { stackedPrompt } from './stacked-prompt.mjs';
-export { getValidTargets, runColoredTokenPicker, hitToken } from './token-picker.mjs';
+export { getValidTargets, openingPath, runColoredTokenPicker, hitToken } from './token-picker.mjs';
 export { faceFromToken, groupFaces, faceChainHTML, activateFaces } from './portraits.mjs';
 export { DAMAGE_TYPES, damageTypeLabel, damageTypeIconHTML } from './damage-types.mjs';
 export { RESOURCE_TOKENS, drawResourceToken, resourceTokenURI, resourceTokenHTML } from './resource-tokens.mjs';
@@ -18,3 +23,5 @@ export { PRE_APPLY, APPLY, applyHooksMode, applyAllDamage, appliedDamageParts } 
 export { journal, undoJournalEntry, JOURNAL_RECORDED, JOURNAL_UNDONE } from './journal.mjs';
 export { tierFor, powerRollFor, rolledTargets, addTargetResult } from './target-results.mjs';
 export { RESULT_MENU } from './result-menu.mjs';
+export { SceneGrid, SceneTerrain, TERRAIN_BEHAVIOR, wallHeight, coverWallHeight, LOW_COVER_DROP, tagsOf, materialOf, solidTerrainRegions, terrainAt, provideTerrainMovement } from './terrain.mjs';
+export { lineBlocked3d, segmentBlocked3d, segmentHit3d, firstBlock3d, coverWallHit3d, adjacent3d, opposite3d, lineHits, tokenColumn, resetLineOfEffect3d, CORNER as LOE_CORNER } from './line-of-effect-3d.mjs';

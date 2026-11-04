@@ -1,3 +1,4 @@
+import { tipAttrs, tipFrom } from './rich-tips.mjs';
 
 export const DAMAGE_TYPES = Object.freeze({
   acid:       { icon: 'fa-solid fa-flask-vial',          dark: '#6fbf4a', light: '#3d7a22' },
@@ -30,5 +31,5 @@ export const damageTypeIconHTML = (type, { className = '' } = {}) => {
   if (!type) type = 'untyped';
   const known = DAMAGE_TYPES[type];
   if (!known) return '';
-  return `<i class="${known.icon} ctlib-dmg ctlib-dmg-${esc(type)} ${esc(className)}" data-tooltip="${esc(damageTypeLabel(type))}"></i>`;
+  return `<i class="${known.icon} ctlib-dmg ctlib-dmg-${esc(type)} ${esc(className)}" ${tipAttrs(tipFrom('CTLIB.tip.damageType', { title: damageTypeLabel(type), data: { type: damageTypeLabel(type) } }))}></i>`;
 };
