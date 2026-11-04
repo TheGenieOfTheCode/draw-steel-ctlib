@@ -10,6 +10,7 @@ import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
 import { registerResultMenu } from './result-menu.mjs';
 import { registerJournal } from './journal.mjs';
 import { registerTargetDamageServices } from './target-damage.mjs';
+import { registerUndoButtons, undoEntryAsDirector } from './undo-buttons.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
 import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
@@ -27,6 +28,7 @@ Hooks.once('socketlib.ready', () => {
   socket.register('ctlib.createEmbedded',     async (parentUuid, type, data) => { const parent = await fromUuid(parentUuid); if (parent) return await parent.createEmbeddedDocuments(type, data); });
   socket.register('ctlib.toggleStatusEffect', async (uuid, effectId, options) => { const actor = await fromUuid(uuid); if (actor) return await actor.toggleStatusEffect(effectId, options); });
   socket.register('ctlib.relayTargetResult',  relayTargetResult);
+  socket.register('ctlib.undoJournalEntry',   undoEntryAsDirector);
   socket.register('ctlib.addTags',            async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.addTags(doc, tags); });
   socket.register('ctlib.removeTags',         async (uuid, tags) => { const doc = await fromUuid(uuid); if (doc && game.modules.get('tagger')?.active) await Tagger.removeTags(doc, tags); });
   socket.register('ctlib.actions.write',      writeActions);
@@ -39,6 +41,7 @@ Hooks.once('init', () => {
   registerApplyHooks();
   registerJournal();
   registerTargetDamageServices();
+  registerUndoButtons();
   registerResultMenu();
   registerStatusPalette();
   registerMigration();

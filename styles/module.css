@@ -927,3 +927,50 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 .combat-tracker .ctlib-actions .ctlib-action.spent { opacity: 0.3; }
 .combat-tracker .ctlib-actions .ctlib-action.converted { opacity: 0.6; font-size: 0.85em; }
 .combat-tracker .ctlib-actions .ctlib-action[aria-disabled] { cursor: default; }
+
+.ctlib-split {
+  display: inline-flex;
+  align-items: stretch;
+}
+.message-part-buttons > .ctlib-split {
+  flex: 1 1 auto;
+  margin-top: 3px;
+}
+.ctlib-split > button {
+  margin: 0 !important;
+}
+.ctlib-split > button:not(.ctlib-undo) {
+  flex: 1 1 auto;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.ctlib-split > .ctlib-undo {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 1.75rem;
+  padding: 0 0.35rem;
+  border-left-width: 0;
+  border-radius: 0 3px 3px 0;
+}
+.inline-result .ctlib-split > .ctlib-undo {
+  border: 1px solid var(--button-border-color);
+  border-left-width: 0;
+  background: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 2px #fff inset;
+}
+.ctlib-split > .ctlib-undo.ctlib-undo-off {
+  cursor: default;
+}
+.ctlib-split > .ctlib-undo.ctlib-undo-off > i {
+  opacity: 0.35;
+}
+.ctlib-split > .ctlib-applied {
+  opacity: 0.7;
+}
+.ctlib-split > .ctlib-applied::after {
+  content: "\f00c";
+  font-family: var(--font-awesome);
+  font-weight: 900;
+  font-size: 0.75em;
+  margin-left: 0.35em;
+}

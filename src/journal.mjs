@@ -82,7 +82,7 @@ export function registerJournal() {
     else if (action === 'gainResource') context._ctlibSystem = targets.map((a) => [a, a.toObject().system]);
   });
   Hooks.on(APPLY, (part, action, context) => {
-    const details = action === 'applyDamage' ? damageRecord(context)
+    const details = action === 'applyDamage' ? { ...damageRecord(context), index: Array.from(part?.rolls ?? []).indexOf(context.roll) }
       : action === 'applyEffect' ? effectRecord(context)
         : action === 'gainResource' ? gainRecord(context) : null;
     if (details) record(part, action, details).catch((err) => console.error('CTLib | journal could not record an apply', err));
