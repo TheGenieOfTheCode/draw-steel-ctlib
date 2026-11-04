@@ -46,7 +46,7 @@ export function tierFor(message, target) {
   return targeted ? null : validTier(results[0]?.tier);
 }
 
-export async function addTargetResult(message, token) {
+export async function addTargetResult(message, token, { rolls = null, tier = null } = {}) {
   const doc = token?.document ?? token;
   const actor = doc?.actor;
   if (!message || !doc?.uuid || !actor) return null;
@@ -58,8 +58,8 @@ export async function addTargetResult(message, token) {
   await message.update({ [`system.parts.${id}`]: {
     _id: id,
     type: 'targetResult',
-    rolls: Array.from(template.rolls ?? []).map((r) => JSON.stringify(r.toJSON())),
-    tier: template.tier,
+    rolls: (rolls ?? Array.from(template.rolls ?? [])).map((r) => JSON.stringify(r?.toJSON?.() ?? r)),
+    tier: tier ?? template.tier,
     abilityUuid: template.abilityUuid,
     targetUuid: actor.uuid,
     tokenUuid: doc.uuid,

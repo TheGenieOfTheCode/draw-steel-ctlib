@@ -73,7 +73,7 @@ function wrapActions(actions) {
 
 const OWNER_ACTIONS = ['applyDamage', 'applyEffect', 'gainResource'];
 const OWNER_BUTTONS = OWNER_ACTIONS.map((a) => `[data-action="${a}"]`).join(', ');
-const resultClass = () => globalThis.ds?.CONFIG?.MessagePart?.targetResult?.documentClass ?? null;
+export const resultClass = () => globalThis.ds?.CONFIG?.MessagePart?.targetResult?.documentClass ?? null;
 
 function relayAllowed(part) {
   if (game.user.isGM || part.actorTarget?.isOwner) return false;
@@ -95,7 +95,7 @@ function addRelay(actions) {
   }
 }
 
-const damageIndex = (part) => Array.from(part.rolls ?? []).findIndex((r) => r instanceof ds.rolls.DamageRoll && !r.isHeal);
+export const damageIndex = (part) => Array.from(part.rolls ?? []).findIndex((r) => r instanceof ds.rolls.DamageRoll && !r.isHeal);
 
 const damageParts = (message) => Array.from(message?.system?.parts?.contents ?? [])
   .filter((part) => part.type === 'targetResult' && damageIndex(part) >= 0);

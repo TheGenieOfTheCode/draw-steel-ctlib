@@ -9,6 +9,7 @@ import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
 import { registerResultMenu } from './result-menu.mjs';
 import { registerJournal } from './journal.mjs';
+import { registerTargetDamageServices } from './target-damage.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
 import { registerRichTips } from './rich-tips.mjs';
 import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
@@ -37,6 +38,7 @@ Hooks.once('init', () => {
   registerPrimaryDirector();
   registerApplyHooks();
   registerJournal();
+  registerTargetDamageServices();
   registerResultMenu();
   registerStatusPalette();
   registerMigration();
