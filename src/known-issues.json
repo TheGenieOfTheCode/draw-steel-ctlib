@@ -23,6 +23,13 @@
       "fixedIn": "1.2.8"
     },
     {
+      "id": "ct-status-stacks",
+      "module": "draw-steel-combat-tools",
+      "match": [["invisible", "blind", "deaf", "status", "effect", "condition"], ["stack", "twice", "double", "duplicat", "copies", "copy", "again", "more time"]],
+      "text": "When Invisible, or another status Foundry itself provides, is applied to a creature that already has it, Combat Tools adds a second copy instead of refreshing the first. Vanishing Ward does this when a Bloodbound Band passes damage on. The copies are harmless: they end together. Combat Tools 1.2.9 refreshes the status instead; until then, delete the extra copy from the token's effects if it bothers you.",
+      "fixedIn": "1.2.9"
+    },
+    {
       "id": "dt-pulse-never-dies",
       "module": "draw-steel-death-tracker",
       "match": [["flash", "red", "puls", "glow"], ["minion", "squad", "die", "dying", "dead", "death"]],
