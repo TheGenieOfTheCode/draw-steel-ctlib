@@ -20,7 +20,10 @@
       "name": "Covered by {name}"
     },
     "apply": {
-      "noDirector": "No Director is connected to apply this for you."
+      "noDirector": "No Director is connected to apply this for you.",
+      "applyAll": "Apply All Damage",
+      "allApplied": "All Damage Applied",
+      "applyAllHint": "Apply each target's damage that is not applied yet. Shift-click applies half."
     },
     "settings": {
       "debugHeader": "Debug Settings",

@@ -95,18 +95,55 @@ function addRelay(actions) {
   }
 }
 
-export async function applyAllDamage(message, { halfDamage = false } = {}) {
+const damageIndex = (part) => Array.from(part.rolls ?? []).findIndex((r) => r instanceof ds.rolls.DamageRoll && !r.isHeal);
+
+const damageParts = (message) => Array.from(message?.system?.parts?.contents ?? [])
+  .filter((part) => part.type === 'targetResult' && damageIndex(part) >= 0);
+
+export function appliedDamageParts(message) {
+  const live = Object.values(message?.flags?.['draw-steel-ctlib']?.journal ?? {}).filter((e) => e.action === 'applyDamage' && !e.undone);
+  return new Set(live.map((e) => e.partId));
+}
+
+export async function applyAllDamage(message, { halfDamage = false, again = false } = {}) {
   const action = resultClass()?.ACTIONS?.applyDamage;
   if (typeof action !== 'function') return 0;
+  const done = again ? new Set() : appliedDamageParts(message);
   let applied = 0;
-  for (const part of Array.from(message?.system?.parts?.contents ?? [])) {
-    if (part.type !== 'targetResult') continue;
-    const index = Array.from(part.rolls ?? []).findIndex((r) => r instanceof ds.rolls.DamageRoll && !r.isHeal);
-    if (index < 0) continue;
-    await action.call(part, { shiftKey: halfDamage }, { dataset: { index: String(index) } });
+  for (const part of damageParts(message)) {
+    if (done.has(part.id)) continue;
+    await action.call(part, { shiftKey: halfDamage }, { dataset: { index: String(damageIndex(part)) } });
     applied++;
   }
   return applied;
+}
+
+function addApplyAllButton(message, html) {
+  const parts = damageParts(message);
+  if (parts.length < 2 || !(game.user.isGM || message.isOwner)) return;
+  const use = Array.from(message.system.parts.contents).find((p) => p.type === 'abilityUse');
+  const section = (use && html.querySelector(`section[data-message-part="${use.id}"]`)) ?? html.querySelector('section[data-message-part]');
+  if (!section) return;
+  let footer = section.querySelector('footer.message-part-buttons');
+  if (!footer) {
+    footer = document.createElement('footer');
+    footer.className = 'message-part-buttons';
+    section.appendChild(footer);
+  }
+  const done = appliedDamageParts(message);
+  const all = parts.every((p) => done.has(p.id));
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.ctlibApplyAll = '';
+  button.disabled = all;
+  button.innerHTML = `<i class="fa-solid fa-burst" inert></i> ${game.i18n.localize(all ? 'CTLIB.apply.allApplied' : 'CTLIB.apply.applyAll')}`;
+  button.dataset.tooltip = game.i18n.localize('CTLIB.apply.applyAllHint');
+  button.addEventListener('click', async (event) => {
+    event.preventDefault();
+    button.disabled = true;
+    await applyAllDamage(message, { halfDamage: event.shiftKey });
+  });
+  footer.prepend(button);
 }
 
 export async function relayTargetResult(messageId, partId, name, data = {}) {
@@ -154,5 +191,6 @@ export function registerApplyHooks() {
     }
     addRelay(actions);
     unlockOwnerButtons();
+    Hooks.on('renderChatMessageHTML', (message, html) => addApplyAllButton(message, html));
   });
 }
