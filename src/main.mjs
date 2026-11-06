@@ -17,6 +17,7 @@ import { registerRichTips } from './rich-tips.mjs';
 import { registerTerrainBehavior, registerPitRendering } from './terrain.mjs';
 import { registerWallHeightMovement, registerFlanking3d } from './line-of-effect-3d.mjs';
 import { registerActions, writeHandler as writeActions } from './actions.mjs';
+import { registerVideoFaces } from './video-faces.mjs';
 
 export const MODULE_ID = 'draw-steel-ctlib';
 
@@ -51,6 +52,7 @@ Hooks.once('init', () => {
   registerTerrainBehavior();
   registerPitRendering();
   registerActions();
+  registerVideoFaces();
   initPalette();
   new MutationObserver(initPalette).observe(document.body, { attributeFilter: ['class'] });
   ctlib.registerSettingsLayout(MODULE_ID, [], {
