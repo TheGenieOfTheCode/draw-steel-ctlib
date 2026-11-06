@@ -1,5 +1,6 @@
 import { getSocket } from './socket.mjs';
 import { primaryGM, executeAsDirector } from './primary-director.mjs';
+import * as services from './services.mjs';
 
 export const PRE_APPLY = 'ctlib.preApplyTargetResult';
 export const APPLY = 'ctlib.applyTargetResult';
@@ -119,6 +120,8 @@ export async function applyAllDamage(message, { halfDamage = false, again = fals
 }
 
 function addApplyAllButton(message, html) {
+  
+  if (services.has('applyAllEffects')) return;
   const parts = damageParts(message);
   if (parts.length < 2 || !(game.user.isGM || message.isOwner)) return;
   const use = Array.from(message.system.parts.contents).find((p) => p.type === 'abilityUse');

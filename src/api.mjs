@@ -21,6 +21,7 @@ export { openBugReport, reportableModules, suggestFixes } from './bug-report.mjs
 export { settingRequirement, moduleState, requirementMet, requiredSetting, requirementBadgeHTML, markRequirement } from './module-requirements.mjs';
 export { PRE_APPLY, APPLY, applyHooksMode, applyAllDamage, appliedDamageParts } from './apply-hooks.mjs';
 export { journal, undoJournalEntry, JOURNAL_RECORDED, JOURNAL_UNDONE } from './journal.mjs';
+export { undoableEntries, undoAllEntries } from './undo-buttons.mjs';
 export { targetResultFor, undoTargetDamage, applyTargetDamage } from './target-damage.mjs';
 export { tierFor, powerRollFor, rolledTargets, addTargetResult } from './target-results.mjs';
 export { RESULT_MENU } from './result-menu.mjs';

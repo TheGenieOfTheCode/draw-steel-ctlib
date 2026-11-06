@@ -39,6 +39,19 @@ async function undo(message, entry) {
   return executeAsDirector(getSocket(), 'ctlib.undoJournalEntry', message.id, entry.id, game.user.id);
 }
 
+export const undoableEntries = (message, { partIds = null, actions = null } = {}) => journal(message)
+  .filter((e) => !e.undone && (!partIds || partIds.includes(e.partId)) && (!actions || actions.includes(e.action)) && mayUndo(message, e));
+
+export async function undoAllEntries(message, { partIds = null, actions = null } = {}) {
+  let undone = 0;
+  for (const entry of undoableEntries(message, { partIds, actions }).reverse()) {
+    const fresh = game.messages.get(message.id) ?? message;
+    if (fresh.flags?.[MODULE_ID]?.journal?.[entry.id]?.undone) continue;
+    if (await undo(fresh, entry)) undone++;
+  }
+  return undone;
+}
+
 function splitButton(message, partId, button) {
   if (button.parentElement?.classList.contains('ctlib-split')) return;
   const entry = liveEntry(message, partId, button);
