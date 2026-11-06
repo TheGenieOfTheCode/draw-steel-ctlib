@@ -1297,6 +1297,8 @@ export const isSelfAndSelf = (ability, view = null) => {
 export const getItemRange = (item, distanceOverride = null) => {
   const dist = distanceOverride ?? item.system?.distance;
   if (!dist) return 0;
+  
+  if (dist.type === 'special' || dist.type === 'self') return 0;
   const p = parseInt(dist.primary)   || 0;
   const s = parseInt(dist.secondary) || 0;
   const t = parseInt(dist.tertiary)  || 0;
