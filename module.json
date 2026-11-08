@@ -15,7 +15,7 @@
   "authors": [{ "name": "Ady", "discord": "AdyGenie" }],
   "url": "https://github.com/TheGenieOfTheCode/draw-steel-ctlib",
   "relationships": {
-    "systems": [{ "id": "draw-steel", "type": "system", "compatibility": {} }],
+    "systems": [{ "id": "draw-steel", "type": "system", "compatibility": { "verified": "1.2.1" } }],
     "requires": [
       { "id": "socketlib", "type": "module", "compatibility": { "minimum": "1.1.3" } }
     ]
