@@ -1090,6 +1090,7 @@ export const hasFly = (actor) => {
 };
 
 export const canCurrentlyFly = (actor) => {
+  if (actor?.system?.movement?.hover) return true;
   if (!hasFly(actor)) return false;
   if (actor?.statuses?.has('prone'))      return false;
   if (actor?.statuses?.has('restrained')) return false;
