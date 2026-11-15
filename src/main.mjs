@@ -6,7 +6,6 @@ import './blocked-modules.mjs';
 import './target-damage-notice.mjs';
 import { registerStatusPalette } from './status-palette.mjs';
 import { registerMigration } from './migrate.mjs';
-import { registerPrimaryDirector } from './primary-director.mjs';
 import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
 import { registerResultMenu } from './result-menu.mjs';
 import { registerJournal } from './journal.mjs';
@@ -39,7 +38,6 @@ Hooks.once('socketlib.ready', () => {
 
 Hooks.once('init', () => {
   game.modules.get(MODULE_ID).api = ctlib;
-  registerPrimaryDirector();
   registerApplyHooks();
   registerJournal();
   registerTargetDamageServices();
@@ -58,7 +56,7 @@ Hooks.once('init', () => {
   ctlib.registerSettingsLayout(MODULE_ID, [], {
     wiki: {
       base: 'https://github.com/TheGenieOfTheCode/draw-steel-ctlib/wiki/',
-      pages: { bugReportChatButton: 'Bug-Reports', primaryDirector: 'Permission-Safe-Writes#the-primary-director' },
+      pages: { bugReportChatButton: 'Bug-Reports' },
     },
   });
 });
