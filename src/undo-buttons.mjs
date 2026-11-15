@@ -52,6 +52,16 @@ export async function undoAllEntries(message, { partIds = null, actions = null }
   return undone;
 }
 
+export function passHover(wrap, button) {
+  const over = (event) => !event.target.closest?.('.ctlib-undo') && button.disabled;
+  wrap.addEventListener('pointerover', (event) => {
+    if (over(event)) requestAnimationFrame(() => button.dispatchEvent(new PointerEvent('pointerenter')));
+  });
+  wrap.addEventListener('pointerleave', () => {
+    if (button.disabled) button.dispatchEvent(new PointerEvent('pointerleave'));
+  });
+}
+
 function splitButton(message, partId, button) {
   if (button.parentElement?.classList.contains('ctlib-split')) return;
   const entry = liveEntry(message, partId, button);
@@ -61,7 +71,9 @@ function splitButton(message, partId, button) {
   wrap.append(button);
   if (entry) {
     button.classList.add('ctlib-applied');
+    button.disabled = true;
     wrap.classList.add('ctlib-split-applied');
+    passHover(wrap, button);
   }
   const back = document.createElement('button');
   back.type = 'button';

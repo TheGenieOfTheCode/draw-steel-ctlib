@@ -967,10 +967,35 @@ body #token-hud .status-effects.palette section.effect-pane .dsct-status-header:
 .ctlib-split > .ctlib-applied {
   opacity: 0.7;
 }
+.ctlib-split > button.ctlib-applied:disabled {
+  pointer-events: none;
+}
+body.theme-dark .chat-message .ctlib-split > button[disabled]:disabled {
+  --button-border-color: var(--color-light-5) !important;
+}
+body.theme-light .chat-message .ctlib-split > button[disabled]:disabled {
+  --button-border-color: var(--color-dark-5) !important;
+}
 .ctlib-split > .ctlib-applied::after {
   content: "\f00c";
   font-family: var(--font-awesome);
   font-weight: 900;
   font-size: 0.75em;
   margin-left: 0.35em;
+}
+body.dsp-improved-chat .chat-message .ctlib-split {
+  display: flex !important;
+  flex-direction: row !important;
+  align-self: stretch;
+}
+body.dsp-improved-chat .chat-message .ctlib-split > button:not(.ctlib-undo) {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+body.dsp-improved-chat .chat-message .ctlib-split > .ctlib-undo {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 1.75rem !important;
+  padding: 0 0.35rem !important;
 }
