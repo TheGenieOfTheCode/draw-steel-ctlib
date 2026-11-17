@@ -27,3 +27,4 @@ export { tierFor, powerRollFor, rolledTargets, addTargetResult } from './target-
 export { RESULT_MENU } from './result-menu.mjs';
 export { SceneGrid, SceneTerrain, TERRAIN_BEHAVIOR, wallHeight, coverWallHeight, LOW_COVER_DROP, tagsOf, materialOf, solidTerrainRegions, terrainAt, provideTerrainMovement } from './terrain.mjs';
 export { lineBlocked3d, segmentBlocked3d, segmentHit3d, firstBlock3d, coverWallHit3d, adjacent3d, opposite3d, lineHits, tokenColumn, resetLineOfEffect3d, CORNER as LOE_CORNER } from './line-of-effect-3d.mjs';
+export { summonSourceOf, isSummoned, summonerOf, summonsOf, masterOf, companionsOf } from './summons.mjs';

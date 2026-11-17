@@ -9,6 +9,7 @@ import { registerMigration } from './migrate.mjs';
 import { registerApplyHooks, relayTargetResult } from './apply-hooks.mjs';
 import { registerResultMenu } from './result-menu.mjs';
 import { registerJournal } from './journal.mjs';
+import { registerSummons } from './summons.mjs';
 import { registerTargetDamageServices } from './target-damage.mjs';
 import { registerUndoButtons, undoEntryAsDirector } from './undo-buttons.mjs';
 import { registerCgmpGuard } from './cgmp.mjs';
@@ -40,6 +41,7 @@ Hooks.once('init', () => {
   game.modules.get(MODULE_ID).api = ctlib;
   registerApplyHooks();
   registerJournal();
+  registerSummons();
   registerTargetDamageServices();
   registerUndoButtons();
   registerResultMenu();
